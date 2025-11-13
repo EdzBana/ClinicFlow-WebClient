@@ -46,7 +46,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const navigateToStockControl = () => {
     console.log("Navigating to Stock Control");
-    // Add navigation logic here
+    navigate("/stock-control");
   };
 
   const navigateToRecords = () => {
@@ -56,7 +56,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   const navigateToAppointments = () => {
     console.log("Navigating to Appointments");
-    // Add navigation logic here
+    navigate("/appointments");
   };
 
   // Map navigation items to their respective functions

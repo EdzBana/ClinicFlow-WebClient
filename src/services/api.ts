@@ -13,11 +13,19 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     try {
+      // Dynamically import supabase client (so no circular deps)
+      const { supabase } = await import("@/lib/supabaseClient");
+      const { data: session } = await supabase.auth.getSession();
+
+      const accessToken =
+        session?.session?.access_token ||
+        import.meta.env.VITE_SUPABASE_ANON_KEY;
+
       const response = await fetch(`${EDGE_FUNCTIONS_URL}${endpoint}`, {
         ...options,
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          Authorization: `Bearer ${accessToken}`,
           ...options.headers,
         },
       });
@@ -95,25 +103,17 @@ class ApiClient {
   async uploadPatientRecords(
     uploadData: UploadPatientRecordsRequest,
     onProgress?: (progress: number) => void
-  ): Promise<ApiResponse<{ records: PatientRecord[]; message: string }>> {
+  ): Promise<ApiResponse<{ records: PatientRecord[] }>> {
+    if (!uploadData.files.length) return { error: "No files to upload" };
+
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
       const formData = new FormData();
 
       formData.append("patientId", uploadData.patientId);
       formData.append("patientName", uploadData.patientName);
-
       formData.append("userId", uploadData.userId);
       formData.append("userType", uploadData.userType);
-
-      console.log(
-        "Uploading files:",
-        uploadData.files.map((f) => ({
-          name: f.file.name,
-          size: f.file.size,
-          type: f.file.type,
-        }))
-      );
 
       uploadData.files.forEach((fileData, index) => {
         formData.append("files", fileData.file);
@@ -128,50 +128,47 @@ class ApiClient {
       });
 
       xhr.addEventListener("load", () => {
-        const status = xhr.status;
-        console.log("Upload response:", {
-          status,
-          responseText: xhr.responseText,
-        });
-
         try {
           const response = JSON.parse(xhr.responseText);
-          if (status >= 200 && status < 300) {
+          if (xhr.status >= 200 && xhr.status < 300) {
             resolve({ data: response });
           } else {
-            resolve({
-              error: response.error || "Upload failed",
-              message: response.details,
-            });
+            resolve({ error: response.error || "Upload failed" });
           }
         } catch (e) {
-          console.error("Failed to parse response:", e);
-          resolve({ error: "Failed to parse server response" });
+          resolve({ error: "Failed to parse response from server" });
         }
       });
 
-      xhr.addEventListener("error", () => {
-        console.error("XHR Error:", xhr.statusText);
-        resolve({ error: "Network error occurred" });
-      });
+      xhr.addEventListener("error", () => resolve({ error: "Network error" }));
 
       xhr.open("POST", `${EDGE_FUNCTIONS_URL}/patient-records`);
-      xhr.setRequestHeader(
-        "Authorization",
-        `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
-      );
-      xhr.send(formData);
+
+      xhr.setRequestHeader("apikey", import.meta.env.VITE_SUPABASE_ANON_KEY);
+
+      // Add the access token from supabase.auth
+      import("@/lib/supabaseClient").then(({ supabase }) => {
+        supabase.auth.getSession().then(({ data }) => {
+          const accessToken =
+            data?.session?.access_token ||
+            import.meta.env.VITE_SUPABASE_ANON_KEY;
+          xhr.setRequestHeader("Authorization", `Bearer ${accessToken}`);
+          xhr.send(formData);
+        });
+      });
     });
   }
 
-  async getPatientRecords(
-    patientId: string
-  ): Promise<ApiResponse<{ records: PatientRecord[] }>> {
-    return this.request<{ records: PatientRecord[] }>("/patient-records", {
+  async getFileSignedUrl(
+    recordId: string,
+    expiresIn: number = 3600
+  ): Promise<ApiResponse<FileSignedUrlResponse>> {
+    return this.request<FileSignedUrlResponse>("/serve-file", {
       method: "POST",
       body: JSON.stringify({
-        action: "getRecords",
-        patientId,
+        action: "getSignedUrl",
+        recordId,
+        expiresIn,
       }),
     });
   }
@@ -179,8 +176,173 @@ class ApiClient {
   /** ---------------------
    * Inventory
    * --------------------- */
-  async getItemList() {
-    return this.request<InvetoryItemList[]>("/get-item-list");
+  async getItemList(): Promise<ApiResponse<InventoryItemList[]>> {
+    return this.request<InventoryItemList[]>("/get-item-list");
+  }
+
+  async getCategories() {
+    return this.request<ItemCategory[]>("/categories");
+  }
+
+  async createItem(itemData: CreateItemRequest) {
+    return this.request<{ message: string; item: InventoryItemList }>(
+      "/add-item",
+      {
+        method: "POST",
+        body: JSON.stringify(itemData),
+      }
+    );
+  }
+
+  async getItemDetails(id: string) {
+    return this.request<Item>("/get-item-details", {
+      method: "POST",
+      body: JSON.stringify({ id }),
+    });
+  }
+
+  /** ---------------------
+   * Transactions
+   * --------------------- */
+  async createTransaction(transactionData: CreateTransactionRequest) {
+    return this.request<CreateTransactionResponse>("/create-transaction", {
+      method: "POST",
+      body: JSON.stringify(transactionData),
+    });
+  }
+
+  async getTransactions(page = 1, limit = 20) {
+    const offset = (page - 1) * limit;
+
+    try {
+      // Use the shared request method for consistency
+      const { supabase } = await import("@/lib/supabaseClient");
+      const { data: session } = await supabase.auth.getSession();
+
+      const accessToken =
+        session?.session?.access_token ||
+        import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${EDGE_FUNCTIONS_URL}/get-transactions?limit=${limit}&offset=${offset}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        console.error("Error fetching transactions:", result);
+        return {
+          data: [],
+          total: 0,
+          error: result.error || "Failed to fetch transactions",
+        };
+      }
+
+      return {
+        data: result.data ?? [],
+        total: result.total ?? 0,
+      };
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      return {
+        data: [],
+        total: 0,
+        error: error instanceof Error ? error.message : "Network error",
+      };
+    }
+  }
+
+  /** ---------------------
+   * ITEM OPERATIONS
+   * --------------------- */
+  async getItemDetailsById(id: string) {
+    return this.request<InventoryItemList>("/item-operations", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getItemDetails",
+        id,
+      }),
+    });
+  }
+
+  async getItemBatches(itemId: string) {
+    return this.request<ItemBatch[]>("/item-operations", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "getItemBatches",
+        itemId,
+      }),
+    });
+  }
+
+  async searchItems(
+    searchQuery: string,
+    limit: number = 10,
+    userType?: string
+  ): Promise<InventoryItemList[]> {
+    const response = await this.request<{ results: InventoryItemList[] }>(
+      "/item-operations",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "searchItems",
+          searchQuery,
+          limit,
+          userType, // Pass userType for filtering
+        }),
+      }
+    );
+
+    if (response.error) {
+      console.error(response.error);
+      return [];
+    }
+
+    return response.data?.results ?? [];
+  }
+
+  async updateItem(id: string, updateData: UpdateItemRequest) {
+    return this.request<{ message: string; item: InventoryItemList }>(
+      "/item-operations",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "updateItem",
+          id,
+          ...updateData,
+        }),
+      }
+    );
+  }
+
+  async deleteItem(id: string) {
+    return this.request<{ message: string }>("/item-operations", {
+      method: "POST",
+      body: JSON.stringify({
+        action: "deleteItem",
+        id,
+      }),
+    });
+  }
+
+  async restockItem(restockData: RestockItemRequest) {
+    return this.request<{ message: string; batch: ItemBatch }>(
+      "/item-operations",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "restockItem",
+          ...restockData,
+        }),
+      }
+    );
   }
 }
 
@@ -227,6 +389,12 @@ export interface PatientRecord {
   uploaded_by?: string;
   created_at: string;
   record_type?: string;
+  file_path: string; // Add file_path to PatientRecord
+}
+
+export interface FileSignedUrlResponse {
+  signedUrl: string;
+  expiresAt: string;
 }
 
 export interface UploadPatientRecordsRequest {
@@ -240,18 +408,132 @@ export interface UploadPatientRecordsRequest {
   }[];
 }
 
-export interface InvetoryItemList {
+export interface InventoryItemList {
   id: string;
-  type: string;
+  item_type: "Medical" | "Dental";
+  name: string;
+  generic_name: string | null;
+  category: string;
+
+  quantity_box: string;
+  quantity_unit: string;
+  total_stock: string;
+
+  quantity_per_box: number;
+
+  cost_per_unit: number | null;
+  cost_per_box: number | null;
+  expiration_date: string | null;
+
+  min_threshold: number;
+  min_thresh_type: "unit" | "box" | "percentage";
+
+  received_at: string | null; // ✅ NEW
+}
+
+export interface ItemCategory {
+  id: number;
+  name: string;
+}
+
+export interface Item {
+  id: string;
+  item_type: string;
   name: string;
   category: string;
-  quantity_box: number;
-  quantity_unit: number;
-  cost_per_unit: number;
-  cost_per_box: number;
-  expiration_date: Date;
+  quantity_box: number | null;
+  quantity_unit: number | null;
+  cost_per_unit: number | null;
+  cost_per_box: number | null;
+  expiration_date: string | null;
   min_threshold: number;
   min_thresh_type: string;
+  created_at: string;
+}
+
+export interface CreateItemRequest {
+  itemType: string;
+  name: string;
+  genericName: string | null;
+  category: string;
+
+  // Box-related fields (all required together or all null)
+  quantityBox: number | null;
+  quantityPerBox: number | null; // ✅ Changed: now nullable
+  costPerBox: number | null;
+
+  // Unit-related fields
+  quantityUnit: number | null;
+  costPerUnit: number | null;
+
+  // Other fields
+  expirationDate: string | null;
+  minThreshold: number;
+  minThresholdType: "unit" | "box" | "percentage";
+}
+export interface TransactionItemInput {
+  item_id: string;
+  quantity: number;
+}
+
+export interface CreateTransactionRequest {
+  user_type: string;
+  method: string;
+  created_by: string;
+  items: TransactionItemInput[];
+}
+
+export interface CreateTransactionResponse {
+  message: string;
+}
+
+export interface TransactionItemRecord {
+  id: string;
+  quantity: number;
+  item: {
+    id: string;
+    name: string;
+    category: string;
+  };
+}
+
+export interface TransactionRecord {
+  id: string;
+  user_type: string;
+  method: string;
+  created_by: string;
+  created_at: string;
+  transaction_items: TransactionItemRecord[];
+}
+
+export interface ItemBatch {
+  id: string;
+  item_id: string;
+  received_at: string;
+  expiration_date: string | null;
+  quantity_box: number;
+  quantity_unit: number;
+  cost_per_unit: number | null;
+  cost_per_box: number | null;
+}
+
+export interface UpdateItemRequest {
+  itemType?: string;
+  name?: string;
+  genericName?: string | null;
+  category?: string;
+  quantityPerBox?: number | null;
+  minThreshold?: number;
+  minThresholdType?: "unit" | "box" | "percentage";
+}
+
+export interface RestockItemRequest {
+  itemId: string;
+  quantityBox: number;
+  quantityUnit: number;
+  costPerBox: number | null;
+  costPerUnit: number | null;
+  expirationDate: string | null;
 }
 
 export const apiClient = new ApiClient();

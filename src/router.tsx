@@ -1,12 +1,8 @@
-// src/router.tsx
 import { createBrowserRouter, Navigate } from "react-router-dom";
-
 // Components
 import PrivateRoute from "@/components/PrivateRoute";
-
 // Auth
 import HealthandDentalLogin from "./auth/HealthDentalLogin";
-
 // Pages
 import Dashboard from "./pages/Dashboard";
 import StudentAssistance from "./pages/Student Side/StudentAssistance";
@@ -21,11 +17,25 @@ import Records from "./pages/Records";
 import RecordDetail from "./pages/RecordDetail";
 import InventoryManagementMain from "./pages/Inventory Management/InventoryManagementMain";
 import ViewItem from "./pages/Inventory Management/ViewItem";
+import ItemDetail from "./pages/Inventory Management/ItemDetail";
 import AddItem from "./pages/Inventory Management/AddItem";
+import StockControl from "./pages/StockControl";
+import TransactionHistory from "./pages/Inventory Management/TransactionHistory";
+import AppointmentsMain from "./pages/Appointments/AppointmentsMain";
+import Queueing from "./pages/Appointments/Queueing";
+import Scheduling from "./pages/Appointments/Scheduling";
+import StudentActivities from "./pages/Appointments/StudentActivities";
+import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
 
 export const router = createBrowserRouter([
-  { path: "/login", element: <HealthandDentalLogin /> },
+  // Auth
+  {
+    path: "/login",
+    element: <HealthandDentalLogin />,
+    handle: { title: "Login" },
+  },
 
+  // Dashboard
   {
     path: "/dashboard",
     element: (
@@ -33,7 +43,10 @@ export const router = createBrowserRouter([
         <Dashboard />
       </PrivateRoute>
     ),
+    handle: { title: "Dashboard" },
   },
+
+  // Inventory
   {
     path: "/inventory",
     element: (
@@ -41,7 +54,10 @@ export const router = createBrowserRouter([
         <Inventory />
       </PrivateRoute>
     ),
+    handle: { title: "Inventory" },
   },
+
+  // Inventory Management
   {
     path: "/inventory-management",
     element: (
@@ -49,27 +65,57 @@ export const router = createBrowserRouter([
         <InventoryManagementMain />
       </PrivateRoute>
     ),
+    handle: { title: "Inventory Management" },
   },
   {
     path: "/inventory-management/view-item",
     element: (
       <PrivateRoute>
-        <div>
-          <ViewItem />
-        </div>
+        <ViewItem />
       </PrivateRoute>
     ),
+    handle: { title: "View Items" },
+  },
+  {
+    path: "/inventory-management/view-item/:id",
+    element: (
+      <PrivateRoute>
+        <ItemDetail />
+      </PrivateRoute>
+    ),
+    handle: { title: "Item Details" },
   },
   {
     path: "/inventory-management/add-item",
     element: (
       <PrivateRoute>
-        <div>
-          <AddItem />
-        </div>
+        <AddItem />
       </PrivateRoute>
     ),
+    handle: { title: "Add Item" },
   },
+  {
+    path: "/inventory-management/transaction-history",
+    element: (
+      <PrivateRoute>
+        <TransactionHistory />
+      </PrivateRoute>
+    ),
+    handle: { title: "Transaction History" },
+  },
+
+  // Stock Control
+  {
+    path: "/stock-control",
+    element: (
+      <PrivateRoute>
+        <StockControl />
+      </PrivateRoute>
+    ),
+    handle: { title: "Stock Control" },
+  },
+
+  // Records
   {
     path: "/records",
     element: (
@@ -77,6 +123,7 @@ export const router = createBrowserRouter([
         <Records />
       </PrivateRoute>
     ),
+    handle: { title: "Records" },
   },
   {
     path: "/records/:id",
@@ -85,25 +132,95 @@ export const router = createBrowserRouter([
         <RecordDetail />
       </PrivateRoute>
     ),
+    handle: { title: "Record Details" },
   },
 
-  // Student Assistance (public)
-  { path: "/student-assistance", element: <StudentAssistance /> },
-  { path: "/student-assistance/queue", element: <QueueingSystemPage /> },
+  // Appointments
+  {
+    path: "/appointments",
+    element: (
+      <PrivateRoute>
+        <AppointmentsMain />
+      </PrivateRoute>
+    ),
+    handle: { title: "Appointments" },
+  },
+  {
+    path: "/appointments/queue",
+    element: (
+      <PrivateRoute>
+        <Queueing />
+      </PrivateRoute>
+    ),
+    handle: { title: "Queueing System" },
+  },
+  {
+    path: "/appointments/schedule-appointment",
+    element: (
+      <PrivateRoute>
+        <Scheduling />
+      </PrivateRoute>
+    ),
+    handle: { title: "Schedule Appointment" },
+  },
+  {
+    path: "/appointments/student-activities",
+    element: (
+      <PrivateRoute>
+        <StudentActivities />
+      </PrivateRoute>
+    ),
+    handle: { title: "Student Activities" },
+  },
+  {
+    path: "/appointments/queue-history",
+    element: (
+      <PrivateRoute>
+        <QueueHistoryPage />
+      </PrivateRoute>
+    ),
+    handle: { title: "Queue History" },
+  },
+
+  // Student Assistance (Public)
+  {
+    path: "/student-assistance",
+    element: <StudentAssistance />,
+    handle: { title: "Student Assistance" },
+  },
+  {
+    path: "/student-assistance/queue",
+    element: <QueueingSystemPage />,
+    handle: { title: "Queueing System" },
+  },
   {
     path: "/student-assistance/schedule-appointment",
     element: <ScheduleAppointmentPage />,
+    handle: { title: "Schedule Appointment" },
   },
   {
     path: "/student-assistance/request-medical-service",
     element: <RequestMedicalServicePage />,
+    handle: { title: "Request Medical Service" },
   },
-  { path: "/student-assistance/queue/success", element: <QueueSuccess /> },
-  { path: "/student-assistance/queue/view", element: <ViewQueue /> },
+  {
+    path: "/student-assistance/queue/success",
+    element: <QueueSuccess />,
+    handle: { title: "Queue Success" },
+  },
+  {
+    path: "/student-assistance/queue/view",
+    element: <ViewQueue />,
+    handle: { title: "View Queue" },
+  },
 
   // Redirect root
-  { path: "/", element: <Navigate to="/login" replace /> },
+  {
+    path: "/",
+    element: <Navigate to="/login" replace />,
+    handle: { title: "Redirecting..." },
+  },
 
-  // 404
-  { path: "*", element: <NotFound /> },
+  //  404
+  { path: "*", element: <NotFound />, handle: { title: "Page Not Found" } },
 ]);

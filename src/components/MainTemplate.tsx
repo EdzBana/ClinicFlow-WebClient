@@ -1,27 +1,31 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import NavigationSidebar from "@/components/NavigationSidebar";
 import logo from "../assets/mseuf_logo.webp";
+import { useMatches } from "react-router-dom";
 
 interface MainTemplateProps {
-  initialPage?: string;
   children?: React.ReactNode;
 }
 
-const MainTemplate: React.FC<MainTemplateProps> = ({
-  initialPage = "Dashboard",
-  children,
-}) => {
-  const [currentPage, setCurrentPage] = useState(initialPage);
+const MainTemplate: React.FC<MainTemplateProps> = ({ children }) => {
+  const matches = useMatches();
+  const currentMatch = matches.find((m) => m.handle?.title);
+  const currentTitle = currentMatch?.handle?.title || "Dashboard";
+
+  const [currentPage, setCurrentPage] = useState(currentTitle);
+
+  useEffect(() => {
+    setCurrentPage(currentTitle);
+    document.title = `${currentTitle} | Health and Dental System`;
+  }, [currentTitle]);
 
   const handlePageChange = (page: string) => {
     setCurrentPage(page);
     console.log("Navigate to:", page);
-    // Add any additional page change logic here
   };
 
   const handleLogout = () => {
     console.log("User logged out");
-    // Add logout logic here
   };
 
   return (
@@ -42,12 +46,12 @@ const MainTemplate: React.FC<MainTemplateProps> = ({
         >
           <h1 className="text-5xl font-medium text-gray-900">{currentPage}</h1>
 
-          {/* University Logo Placeholder */}
+          {/* University Logo */}
           <img src={logo} alt="MSEUF Logo" width={120} height={118} />
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-8 " style={{ backgroundColor: "#E8E9F3" }}>
+        <main className="flex-1 p-8" style={{ backgroundColor: "#E8E9F3" }}>
           {children}
         </main>
       </div>

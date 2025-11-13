@@ -41,7 +41,7 @@ const StudentAssistance: React.FC = () => {
         <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl mb-12 items-center">
           <button
             onClick={handleScheduleAppointment}
-            className="w-full md:w-64 h-16 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             Schedule an Appointment
@@ -49,7 +49,7 @@ const StudentAssistance: React.FC = () => {
 
           <button
             onClick={handleGetNumber}
-            className="w-full md:w-64 h-16 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             Get Number
@@ -57,7 +57,7 @@ const StudentAssistance: React.FC = () => {
 
           <button
             onClick={handleRequestMedicalService}
-            className="w-full md:w-64 h-20 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             <div className="text-center leading-snug">

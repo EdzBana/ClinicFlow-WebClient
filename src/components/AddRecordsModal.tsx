@@ -56,24 +56,22 @@ const AddRecordsModal: React.FC<AddRecordsModalProps> = ({
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length === 0) return;
+    if (!selectedFiles.length) return;
 
     setIsUploading(true);
     setUploadProgress(0);
 
     try {
-      if (!user || !userType) {
-        throw new Error("Missing user info or user type");
-      }
+      if (!user || !userType) throw new Error("Missing user info or type");
 
       const uploadData = {
         patientId: patient.id,
         patientName: `${patient.last_name}_${patient.first_name}`,
         userId: user.id,
-        userType, // ✅ now included
-        files: selectedFiles.map((fileWithPreview) => ({
-          file: fileWithPreview.file,
-          description: fileWithPreview.description || fileWithPreview.file.name,
+        userType,
+        files: selectedFiles.map((f) => ({
+          file: f.file,
+          description: f.description || f.file.name,
         })),
       };
 
@@ -82,30 +80,15 @@ const AddRecordsModal: React.FC<AddRecordsModalProps> = ({
         (progress) => setUploadProgress(progress)
       );
 
-      if (response.error) {
-        console.error(
-          "Upload error details:",
-          response.error,
-          response.message
-        );
-        throw new Error(response.error);
-      }
+      if (response.error) throw new Error(response.error);
+      if (!response.data?.records.length)
+        throw new Error("No records uploaded");
 
-      if (response.data?.records) {
-        console.log("Upload successful:", response.data.records);
-        setSelectedFiles([]);
-        onSuccess?.();
-        onClose();
-      } else {
-        throw new Error("No records returned from upload");
-      }
+      setSelectedFiles([]);
+      onSuccess?.();
+      onClose();
     } catch (error) {
-      console.error("Upload failed:", error);
-      alert(
-        error instanceof Error
-          ? error.message
-          : "Upload failed. Please try again."
-      );
+      alert(error instanceof Error ? error.message : "Upload failed");
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -165,9 +148,9 @@ const AddRecordsModal: React.FC<AddRecordsModalProps> = ({
               ref={fileInputRef}
               type="file"
               multiple
+              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
               className="hidden"
               onChange={handleFileSelect}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
               disabled={isUploading}
             />
           </div>

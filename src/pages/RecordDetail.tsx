@@ -10,7 +10,7 @@ import {
 import RecordSearch from "@/components/RecordSearch";
 import AddProfileModal from "@/components/AddProfileModal";
 import AddRecordsModal from "@/components/AddRecordsModal";
-import { useAuth } from "@/hooks/useAuth"; // ✅ Import your auth hook
+import { useAuth } from "@/hooks/useAuth";
 
 const ProfileCard = ({
   profile,
@@ -47,67 +47,111 @@ const ProfileCard = ({
 const RecordDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { userType } = useAuth(); // ✅ get userType
+  const { userType } = useAuth();
 
   const [profile, setProfile] = useState<PatientProfile | null>(null);
   const [records, setRecords] = useState<PatientRecord[]>([]);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
   const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+  const [viewingFiles, setViewingFiles] = useState<Set<string>>(new Set()); // Track which files are being loaded
   const [modalOpen, setModalOpen] = useState(false);
   const [recordsModalOpen, setRecordsModalOpen] = useState(false);
 
   /** Fetch profile by ID */
   const fetchProfile = useCallback(async () => {
     if (!id) return;
-
     setIsLoadingProfile(true);
     try {
       const response = await apiClient.getPatientProfileDetails(id);
-      if (response.error) {
-        console.error("Error fetching profile:", response.error);
-        setProfile(null);
-      } else if (response.data) {
-        setProfile(response.data.profile);
-      }
-    } catch (error) {
-      console.error("Error fetching profile:", error);
+      if (response.data?.profile) setProfile(response.data.profile);
+      else setProfile(null);
+    } catch (err) {
+      console.error("Error fetching profile:", err);
       setProfile(null);
     } finally {
       setIsLoadingProfile(false);
     }
   }, [id]);
 
-  /** Fetch patient records */
+  /** Fetch patient records WITHOUT signed URLs (faster) */
   const fetchRecords = useCallback(async () => {
     if (!id) return;
-
     setIsLoadingRecords(true);
     try {
-      const response = await apiClient.getPatientRecords(id);
-      if (response.error) {
-        console.error("Error fetching records:", response.error);
-        setRecords([]);
-      } else if (response.data) {
-        // ✅ filter by userType before setting
-        const filtered = response.data.records.filter(
-          (record) => !userType || record.record_type === userType
+      // Use the existing getRecords method from your edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/patient-records`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({
+            action: "getRecords",
+            patientId: id,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.records) {
+        const filteredRecords = data.records.filter(
+          (r: PatientRecord) => !userType || r.record_type === userType
         );
-        setRecords(filtered);
+        setRecords(filteredRecords);
+      } else {
+        setRecords([]);
       }
-    } catch (error) {
-      console.error("Error fetching records:", error);
+    } catch (err) {
+      console.error("Error fetching records:", err);
       setRecords([]);
     } finally {
       setIsLoadingRecords(false);
     }
   }, [id, userType]);
 
-  /** Handle successful record upload */
+  /** Handle viewing a specific file */
+  const handleViewFile = useCallback(
+    async (recordId: string) => {
+      // Prevent multiple clicks
+      if (viewingFiles.has(recordId)) return;
+
+      setViewingFiles((prev) => new Set(prev).add(recordId));
+
+      try {
+        const response = await apiClient.getFileSignedUrl(recordId, 7200); // 2 hours expiry
+
+        if (response.error) {
+          alert("Error: " + response.error);
+          return;
+        }
+
+        if (response.data?.signedUrl) {
+          window.open(response.data.signedUrl, "_blank");
+        } else {
+          alert("No signed URL returned");
+        }
+      } catch (error) {
+        console.error("Error viewing file:", error);
+        alert("Failed to open file");
+      } finally {
+        setViewingFiles((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(recordId);
+          return newSet;
+        });
+      }
+    },
+    [viewingFiles]
+  );
+
   const handleRecordUploadSuccess = useCallback(() => {
-    fetchRecords(); // Refresh records after upload
+    fetchRecords(); // Refresh after upload
   }, [fetchRecords]);
 
-  /** Handle profile selection from search */
   const handleProfileClick = useCallback(
     (selectedProfile: PatientProfile) => {
       navigate(`/records/${selectedProfile.id}`);
@@ -115,7 +159,6 @@ const RecordDetail = () => {
     [navigate]
   );
 
-  /** Search profiles function */
   const searchProfiles = useCallback(
     (query: string) => apiClient.searchPatientProfiles(query, 10),
     []
@@ -193,33 +236,47 @@ const RecordDetail = () => {
             </div>
           ) : records.length > 0 ? (
             <div className="space-y-3">
-              {records.map((record) => (
-                <div
-                  key={record.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">
-                      {record.file_name}
-                    </h3>
-                    {record.description && (
-                      <p className="text-sm text-gray-600 mt-1">
-                        {record.description}
-                      </p>
-                    )}
-                    <p className="text-xs text-gray-500 mt-1">
-                      Uploaded{" "}
-                      {new Date(record.created_at).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => window.open(record.file_url, "_blank")}
-                    className="px-3 py-1 text-sm bg-red-900 text-white rounded hover:bg-red-800 transition-colors"
+              {records.map((record) => {
+                const isViewing = viewingFiles.has(record.id);
+
+                return (
+                  <div
+                    key={record.id}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    View
-                  </button>
-                </div>
-              ))}
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">
+                        {record.file_name}
+                      </h3>
+                      {record.description && (
+                        <p className="text-sm text-gray-600 mt-1">
+                          {record.description}
+                        </p>
+                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Uploaded{" "}
+                        {new Date(record.created_at).toLocaleDateString()}
+                        {record.record_type && (
+                          <span className="ml-2 text-blue-600">
+                            • {record.record_type}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleViewFile(record.id)}
+                      disabled={isViewing}
+                      className={`px-3 py-1 text-sm rounded min-w-[80px] ${
+                        isViewing
+                          ? "bg-gray-400 text-gray-700 cursor-not-allowed"
+                          : "bg-red-900 text-white hover:bg-red-800"
+                      } transition-colors`}
+                    >
+                      {isViewing ? "Loading..." : "View"}
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-8">
