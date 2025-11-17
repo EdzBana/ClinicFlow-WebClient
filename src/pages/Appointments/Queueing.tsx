@@ -62,6 +62,41 @@ export default function Queueing() {
     }
   };
 
+  const handleComplete = async () => {
+    if (!currentServing) return;
+
+    setLoading(true);
+    try {
+      await queueService.completeService(currentServing.id);
+      await loadData();
+    } catch (error) {
+      console.error("Error completing service:", error);
+      alert("Error completing service");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    if (!userType) return;
+
+    if (!window.confirm("Skip current client and serve next in queue?")) {
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Complete current and serve next
+      await queueService.serveNext(userType as ServiceType);
+      await loadData();
+    } catch (error) {
+      console.error("Error skipping client:", error);
+      alert("Error skipping client");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleNextClient = async () => {
     if (!userType) return;
 
@@ -199,11 +234,29 @@ export default function Queueing() {
                   </p>
                 </div>
 
-                <div>
+                <div className="mb-6">
                   <p className="text-gray-600 mb-2">ID Number:</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {currentServing.id_number}
                   </p>
+                </div>
+
+                {/* Complete and Skip Buttons */}
+                <div className="grid grid-cols-2 gap-4 mt-8">
+                  <button
+                    onClick={handleComplete}
+                    disabled={loading}
+                    className="py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Complete
+                  </button>
+                  <button
+                    onClick={handleSkip}
+                    disabled={loading || waitingCount === 0}
+                    className="py-3 bg-orange-600 text-white text-lg font-semibold rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Skip
+                  </button>
                 </div>
               </>
             ) : (

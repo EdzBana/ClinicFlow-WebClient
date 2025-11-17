@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import StudentPageTemplate from "./StudentPageTemplate";
 import { useNavigate } from "react-router-dom";
+import { submitMedicalServiceRequest } from "@/services/medicalService";
 
 const RequestMedicalServicePage: React.FC = () => {
   const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -21,7 +23,7 @@ const RequestMedicalServicePage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Basic validation
     if (
       !formData.name.trim() ||
@@ -35,8 +37,31 @@ const RequestMedicalServicePage: React.FC = () => {
       return;
     }
 
-    console.log("Medical service request submitted:", formData);
-    // Add your submission logic here
+    setIsSubmitting(true);
+
+    try {
+      const { data, error } = await submitMedicalServiceRequest({
+        name: formData.name,
+        location: formData.location,
+        event_name: formData.eventName,
+        date: formData.date,
+        department_organization: formData.departmentOrganization,
+        time: formData.time,
+      });
+
+      if (error) {
+        console.error("Error submitting request:", error);
+        alert("Failed to submit request. Please try again.");
+      } else {
+        // Redirect to success page
+        navigate("/student-assistance/request-medical-service/submitted");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleBack = () => {
@@ -70,6 +95,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.name}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -84,6 +110,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.eventName}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -98,6 +125,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.departmentOrganization}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -115,6 +143,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.location}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -129,6 +158,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.date}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
 
@@ -143,6 +173,7 @@ const RequestMedicalServicePage: React.FC = () => {
                   value={formData.time}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 bg-white shadow border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-red-800 focus:border-transparent"
+                  disabled={isSubmitting}
                 />
               </div>
             </div>
@@ -152,15 +183,17 @@ const RequestMedicalServicePage: React.FC = () => {
           <div className="flex justify-between items-center mt-12">
             <button
               onClick={handleSubmit}
-              className="px-12 py-3 text-white text-lg font-medium rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+              disabled={isSubmitting}
+              className="px-12 py-3 text-white text-lg font-medium rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ backgroundColor: "#680000" }}
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
 
             <button
               onClick={handleBack}
-              className="px-8 py-3 text-white bg-gray-500 font-medium rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+              disabled={isSubmitting}
+              className="px-8 py-3 text-white bg-gray-500 font-medium rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Back
             </button>

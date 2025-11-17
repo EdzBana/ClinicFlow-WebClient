@@ -18,14 +18,14 @@ const InventoryManagementMain = () => {
   };
 
   return (
-    <MainTemplate initialPage="Inventory Management">
+    <MainTemplate>
       <div className="flex items-center justify-center pt-40 gap-10">
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
           className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
           onClick={handleQueue}
         >
-          Queue System
+          View Item
         </Button>
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}

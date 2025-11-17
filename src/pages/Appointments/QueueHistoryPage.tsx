@@ -1,10 +1,24 @@
 import { useState, useEffect } from "react";
 import MainTemplate from "@/components/MainTemplate";
 import { queueService } from "@/services/queueService";
-import type { QueueHistory, ServiceType, QueueStatus } from "@/types/queue";
+import type { ServiceType, QueueStatus } from "@/types/queue";
+import { supabase } from "@/lib/supabaseClient";
+
+interface QueueRecord {
+  id: number;
+  name: string;
+  id_number: string;
+  service_type: ServiceType;
+  queue_number: string;
+  queue_date: string;
+  status: QueueStatus;
+  created_at: string;
+  served_at: string | null;
+  completed_at: string | null;
+}
 
 export default function QueueHistoryPage() {
-  const [history, setHistory] = useState<QueueHistory[]>([]);
+  const [history, setHistory] = useState<QueueRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -39,14 +53,61 @@ export default function QueueHistoryPage() {
   const loadHistory = async () => {
     setLoading(true);
     try {
-      const data = await queueService.getQueueHistory(
-        startDate,
-        endDate,
-        serviceFilter || undefined,
-        statusFilter || undefined,
-        200
+      // Build query for main queue table
+      let queueQuery = supabase
+        .from("queue")
+        .select("*")
+        .gte("queue_date", startDate)
+        .lte("queue_date", endDate)
+        .in("status", ["completed", "cancelled"])
+        .order("queue_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (serviceFilter) {
+        queueQuery = queueQuery.eq("service_type", serviceFilter);
+      }
+
+      if (statusFilter) {
+        queueQuery = queueQuery.eq("status", statusFilter);
+      }
+
+      const { data: queueData } = await queueQuery.limit(200);
+
+      // Build query for queue_history table
+      let historyQuery = supabase
+        .from("queue_history")
+        .select("*")
+        .gte("queue_date", startDate)
+        .lte("queue_date", endDate)
+        .order("queue_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (serviceFilter) {
+        historyQuery = historyQuery.eq("service_type", serviceFilter);
+      }
+
+      if (statusFilter) {
+        historyQuery = historyQuery.eq("status", statusFilter);
+      }
+
+      const { data: historyData } = await historyQuery.limit(200);
+
+      // Combine both datasets and remove duplicates by id
+      const combinedData = [...(queueData || []), ...(historyData || [])];
+      const uniqueData = Array.from(
+        new Map(combinedData.map((item) => [item.id, item])).values()
       );
-      setHistory(data);
+
+      // Sort by date descending
+      uniqueData.sort((a, b) => {
+        const dateCompare = b.queue_date.localeCompare(a.queue_date);
+        if (dateCompare !== 0) return dateCompare;
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+
+      setHistory(uniqueData);
     } catch (error) {
       console.error("Error loading history:", error);
     } finally {

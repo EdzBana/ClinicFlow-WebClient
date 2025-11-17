@@ -5,10 +5,6 @@ import StudentPageTemplate from "./StudentPageTemplate";
 const StudentAssistance: React.FC = () => {
   const navigate = useNavigate();
 
-  const handleScheduleAppointment = () => {
-    navigate("/student-assistance/schedule-appointment");
-  };
-
   const handleGetNumber = () => {
     navigate("/student-assistance/queue");
   };
@@ -38,15 +34,7 @@ const StudentAssistance: React.FC = () => {
         </div>
 
         {/* Service Buttons */}
-        <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl mb-12 items-center">
-          <button
-            onClick={handleScheduleAppointment}
-            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
-            style={{ backgroundColor: "#680000" }}
-          >
-            Schedule an Appointment
-          </button>
-
+        <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl mb-12 items-center md:justify-center">
           <button
             onClick={handleGetNumber}
             className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"

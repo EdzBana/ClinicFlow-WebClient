@@ -44,7 +44,7 @@ const MainTemplate: React.FC<MainTemplateProps> = ({ children }) => {
           className="shadow-sm p-6 flex justify-between items-center"
           style={{ backgroundColor: "#E8E9F3" }}
         >
-          <h1 className="text-5xl font-medium text-gray-900">{currentPage}</h1>
+          <h1 className="text-5xl font-bold text-gray-900">{currentPage}</h1>
 
           {/* University Logo */}
           <img src={logo} alt="MSEUF Logo" width={120} height={118} />

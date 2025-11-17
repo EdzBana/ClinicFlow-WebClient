@@ -9,10 +9,6 @@ const AppointmentsMain = () => {
     navigate("/appointments/queue");
   };
 
-  const handleScheduling = () => {
-    navigate("/appointments/scheduling");
-  };
-
   const handleStudentActivities = () => {
     navigate("/appointments/student-activities");
   };
@@ -22,7 +18,7 @@ const AppointmentsMain = () => {
   };
 
   return (
-    <MainTemplate initialPage="Appointments">
+    <MainTemplate>
       <div className="flex items-center justify-center pt-40 gap-10">
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
@@ -31,13 +27,7 @@ const AppointmentsMain = () => {
         >
           Queueing System
         </Button>
-        <Button
-          style={{ backgroundColor: "#680000", color: "white" }}
-          className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
-          onClick={handleScheduling}
-        >
-          Scheduling
-        </Button>
+
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
           className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"

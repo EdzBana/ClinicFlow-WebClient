@@ -26,6 +26,8 @@ import Queueing from "./pages/Appointments/Queueing";
 import Scheduling from "./pages/Appointments/Scheduling";
 import StudentActivities from "./pages/Appointments/StudentActivities";
 import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
+import Settings from "./pages/Settings";
+import MedServiceSubmitted from "./pages/Student Side/MedServiceSubmitted";
 
 export const router = createBrowserRouter([
   // Auth
@@ -182,6 +184,17 @@ export const router = createBrowserRouter([
     handle: { title: "Queue History" },
   },
 
+  // Settings
+  {
+    path: "/settings",
+    element: (
+      <PrivateRoute>
+        <Settings />
+      </PrivateRoute>
+    ),
+    handle: { title: "Settings" },
+  },
+
   // Student Assistance (Public)
   {
     path: "/student-assistance",
@@ -202,6 +215,11 @@ export const router = createBrowserRouter([
     path: "/student-assistance/request-medical-service",
     element: <RequestMedicalServicePage />,
     handle: { title: "Request Medical Service" },
+  },
+  {
+    path: "/student-assistance/request-medical-service/submitted",
+    element: <MedServiceSubmitted />,
+    handle: { title: "Request Submitted" },
   },
   {
     path: "/student-assistance/queue/success",

@@ -101,7 +101,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
   };
 
   const handleSettings = () => {
-    console.log("Settings clicked");
+    navigate("/settings");
   };
 
   return (
