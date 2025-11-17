@@ -17,6 +17,7 @@ export default function Queueing() {
   useEffect(() => {
     if (userType) {
       loadData();
+      loadSettings();
 
       // Subscribe to realtime changes
       const queueSub: RealtimeChannel = queueService.subscribeToQueue(() => {
