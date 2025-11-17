@@ -40,7 +40,7 @@ const RequestMedicalServicePage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await submitMedicalServiceRequest({
+      const { error } = await submitMedicalServiceRequest({
         name: formData.name,
         location: formData.location,
         event_name: formData.eventName,

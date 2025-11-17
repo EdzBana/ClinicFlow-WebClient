@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import StudentPageTemplate from "./StudentPageTemplate";
 import { useNavigate } from "react-router-dom";
 import { queueService } from "@/services/queueService";
-import type { Queue } from "@/types/queue";
 import { RealtimeChannel } from "@supabase/supabase-js";
 
 interface QueueCounts {

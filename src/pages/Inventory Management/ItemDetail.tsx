@@ -149,7 +149,7 @@ const ItemDetail = () => {
   );
 
   const searchItems = useCallback(
-    (query: string) => apiClient.searchItems(query, 10, userType),
+    (query: string) => apiClient.searchItems(query, 10, userType ?? undefined),
     [userType]
   );
 
@@ -187,7 +187,7 @@ const ItemDetail = () => {
   }, [fetchItem, fetchBatches]);
 
   return (
-    <MainTemplate initialPage="View Item">
+    <MainTemplate>
       <div className="flex justify-start mb-6">
         <button
           type="button"

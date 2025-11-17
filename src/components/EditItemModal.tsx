@@ -13,6 +13,8 @@ interface EditItemModalProps {
   onSuccess: () => void;
 }
 
+type ThresholdType = "unit" | "box" | "percentage";
+
 const EditItemModal = ({
   isOpen,
   onClose,
@@ -28,7 +30,7 @@ const EditItemModal = ({
   const [minThreshold, setMinThreshold] = useState(
     item.min_threshold?.toString() || "0"
   );
-  const [minThresholdType, setMinThresholdType] = useState(
+  const [minThresholdType, setMinThresholdType] = useState<ThresholdType>(
     item.min_thresh_type || "unit"
   );
   const [categories, setCategories] = useState<ItemCategory[]>([]);
@@ -199,7 +201,9 @@ const EditItemModal = ({
               </label>
               <select
                 value={minThresholdType}
-                onChange={(e) => setMinThresholdType(e.target.value)}
+                onChange={(e) =>
+                  setMinThresholdType(e.target.value as ThresholdType)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-800"
                 required
               >

@@ -22,7 +22,7 @@ const Records = () => {
     apiClient.searchPatientProfiles(query, 10);
 
   return (
-    <MainTemplate initialPage="Records">
+    <MainTemplate>
       <div className="flex justify-center items-start mb-8">
         <SearchBar<PatientProfile>
           placeholder="Enter Name or ID"

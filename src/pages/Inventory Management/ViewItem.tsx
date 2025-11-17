@@ -20,10 +20,10 @@ const ViewItem = () => {
   );
 
   const searchItems = (query: string) =>
-    apiClient.searchItems(query, 10, userType);
+    apiClient.searchItems(query, 10, userType ?? undefined);
 
   return (
-    <MainTemplate initialPage="View Item">
+    <MainTemplate>
       <div className="flex justify-start mb-6">
         <button
           type="button"

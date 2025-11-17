@@ -240,7 +240,7 @@ const Inventory = () => {
   };
 
   return (
-    <MainTemplate initialPage="Inventory">
+    <MainTemplate>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div className="relative w-96">

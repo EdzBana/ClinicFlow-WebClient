@@ -62,7 +62,7 @@ const TransactionHistory = () => {
   const hasNextPage = page * 10 < total;
 
   return (
-    <MainTemplate initialPage="Transaction History">
+    <MainTemplate>
       <div className="flex justify-start mb-6">
         <button
           type="button"

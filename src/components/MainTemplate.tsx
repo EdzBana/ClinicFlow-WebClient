@@ -7,10 +7,15 @@ interface MainTemplateProps {
   children?: React.ReactNode;
 }
 
+interface RouteHandle {
+  title?: string;
+}
+
 const MainTemplate: React.FC<MainTemplateProps> = ({ children }) => {
   const matches = useMatches();
-  const currentMatch = matches.find((m) => m.handle?.title);
-  const currentTitle = currentMatch?.handle?.title || "Dashboard";
+  const currentMatch = matches.find((m) => (m.handle as RouteHandle)?.title);
+  const currentTitle =
+    (currentMatch?.handle as RouteHandle)?.title ?? "Dashboard";
 
   const [currentPage, setCurrentPage] = useState(currentTitle);
 

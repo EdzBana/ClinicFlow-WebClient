@@ -141,7 +141,7 @@ const StockControl = () => {
   if (loading) return <LoadingSpinner size="large" />;
 
   return (
-    <MainTemplate initialPage="Stock Control">
+    <MainTemplate>
       {/* Search Bar */}
       <div className="mb-4">
         <SearchBar

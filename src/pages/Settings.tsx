@@ -28,7 +28,7 @@ export default function Settings() {
     }
 
     // Verify old password by signing in again
-    const { data, error: authError } = await supabase.auth.signInWithPassword({
+    const { error: authError } = await supabase.auth.signInWithPassword({
       email: (await supabase.auth.getUser()).data.user?.email ?? "",
       password: oldPassword,
     });

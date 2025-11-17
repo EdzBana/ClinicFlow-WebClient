@@ -199,7 +199,7 @@ const AddItem = () => {
   };
 
   return (
-    <MainTemplate initialPage="Add Item">
+    <MainTemplate>
       <div className="flex justify-start mb-6">
         <button
           type="button"

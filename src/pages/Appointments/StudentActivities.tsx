@@ -132,13 +132,10 @@ const StudentActivities: React.FC = () => {
     if (!selectedRequest?.id) return;
 
     setIsSaving(true);
-    const { data, error } = await updateMedicalServiceRequest(
-      selectedRequest.id,
-      {
-        approval_status: modalForm.approval_status,
-        requirements_submitted: modalForm.requirements_submitted,
-      }
-    );
+    const { error } = await updateMedicalServiceRequest(selectedRequest.id, {
+      approval_status: modalForm.approval_status,
+      requirements_submitted: modalForm.requirements_submitted,
+    });
 
     if (error) {
       console.error("Error updating request:", error);
@@ -192,7 +189,6 @@ const StudentActivities: React.FC = () => {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-opacity-50"
-              style={{ focusRingColor: "#680000" }}
             >
               <option value="all">All Requests</option>
               <option value="pending">Pending</option>

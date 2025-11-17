@@ -170,7 +170,7 @@ const RecordDetail = () => {
   }, [fetchProfile, fetchRecords]);
 
   return (
-    <MainTemplate initialPage="Records">
+    <MainTemplate>
       {/* Search Bar */}
       <div className="flex justify-center items-start mb-8">
         <RecordSearch<PatientProfile>
