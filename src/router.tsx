@@ -7,7 +7,6 @@ import HealthandDentalLogin from "./auth/HealthDentalLogin";
 import Dashboard from "./pages/Dashboard";
 import StudentAssistance from "./pages/Student Side/StudentAssistance";
 import QueueingSystemPage from "./pages/Student Side/QueueingSystemPage";
-import ScheduleAppointmentPage from "./pages/Student Side/ScheduleAppointmentPage";
 import RequestMedicalServicePage from "./pages/Student Side/RequestMedicalServicePage";
 import QueueSuccess from "./pages/Student Side/QueueSuccess";
 import ViewQueue from "./pages/Student Side/ViewQueue";
@@ -23,7 +22,6 @@ import StockControl from "./pages/StockControl";
 import TransactionHistory from "./pages/Inventory Management/TransactionHistory";
 import AppointmentsMain from "./pages/Appointments/AppointmentsMain";
 import Queueing from "./pages/Appointments/Queueing";
-import Scheduling from "./pages/Appointments/Scheduling";
 import StudentActivities from "./pages/Appointments/StudentActivities";
 import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
 import Settings from "./pages/Settings";
@@ -157,15 +155,6 @@ export const router = createBrowserRouter([
     handle: { title: "Queueing System" },
   },
   {
-    path: "/appointments/schedule-appointment",
-    element: (
-      <PrivateRoute>
-        <Scheduling />
-      </PrivateRoute>
-    ),
-    handle: { title: "Schedule Appointment" },
-  },
-  {
     path: "/appointments/student-activities",
     element: (
       <PrivateRoute>
@@ -205,11 +194,6 @@ export const router = createBrowserRouter([
     path: "/student-assistance/queue",
     element: <QueueingSystemPage />,
     handle: { title: "Queueing System" },
-  },
-  {
-    path: "/student-assistance/schedule-appointment",
-    element: <ScheduleAppointmentPage />,
-    handle: { title: "Schedule Appointment" },
   },
   {
     path: "/student-assistance/request-medical-service",
