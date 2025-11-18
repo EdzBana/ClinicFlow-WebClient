@@ -150,8 +150,7 @@ const EditMedicalHistoryModal = ({
 
           <div className="bg-gray-50 p-4 rounded-lg">
             <p className="text-sm font-medium text-gray-700 mb-3">
-              Check all conditions that apply (Put ✓ if there is Family history,
-              and ✗ for none):
+              Check all conditions that apply (leave unchecked if none):
             </p>
             <div className="grid grid-cols-3 gap-3">
               {conditions.map((condition) => (

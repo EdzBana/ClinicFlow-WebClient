@@ -104,9 +104,6 @@ const PhysicalRecordTab = ({ patientId }: PhysicalRecordTabProps) => {
           </div>
         ) : medicalHistory ? (
           <div className="bg-gray-50 p-4 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-3">
-              Family History (✓ = Present, ✗ = None):
-            </p>
             <div className="grid grid-cols-3 gap-2">
               {getCheckedConditions().map((condition) => (
                 <div key={condition.key} className="text-sm text-gray-900">
