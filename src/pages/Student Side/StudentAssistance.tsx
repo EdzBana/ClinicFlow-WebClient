@@ -77,7 +77,7 @@ const StudentAssistance: React.FC = () => {
         </div>
 
         {/* Back Button */}
-        <div className="pt-6">
+        <div className="pt-6 hidden md:block">
           <button
             onClick={handleBack}
             className="px-6 py-3 text-white font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
