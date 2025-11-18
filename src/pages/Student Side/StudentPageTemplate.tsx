@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../../assets/mseuf_logo.webp";
+import { useMatches } from "react-router-dom";
 
 interface PageTemplateProps {
   pageTitle?: string;
@@ -8,12 +9,30 @@ interface PageTemplateProps {
   className?: string;
 }
 
+interface RouteHandle {
+  title?: string;
+}
+
 const StudentPageTemplate: React.FC<PageTemplateProps> = ({
   pageTitle,
   pageSubtitle,
   children,
   className = "",
 }) => {
+  // 🔹 Detect current route using useMatches()
+  const matches = useMatches();
+  const currentMatch = matches.find((m) => (m.handle as RouteHandle)?.title);
+  const currentTitle =
+    (currentMatch?.handle as RouteHandle)?.title ?? pageTitle ?? "Dashboard";
+
+  // 🔹 Set page title dynamically
+  const [currentPage, setCurrentPage] = useState(currentTitle);
+
+  useEffect(() => {
+    setCurrentPage(currentTitle);
+    document.title = `${currentTitle} | Health and Dental System`;
+  }, [currentTitle]);
+
   return (
     <div
       className={`min-h-screen flex flex-col ${className}`}
@@ -21,7 +40,7 @@ const StudentPageTemplate: React.FC<PageTemplateProps> = ({
     >
       {/* Header Section */}
       <div className="flex flex-col items-center md:items-start p-4 md:p-8">
-        {/* Logo + University Name */}
+        {/* Logo */}
         <div className="flex items-center gap-3 md:gap-4 self-start">
           <img
             src={logo}
@@ -44,15 +63,15 @@ const StudentPageTemplate: React.FC<PageTemplateProps> = ({
           </div>
         </div>
 
-        {/* Page Title/Subtitle below logo */}
-        {(pageTitle || pageSubtitle) && (
+        {/* Page Title/Subtitle */}
+        {(currentPage || pageSubtitle) && (
           <div className="mt-4 text-center md:text-left w-full">
-            {pageTitle && (
+            {currentPage && (
               <h1
                 className="text-xl md:text-5xl font-medium"
                 style={{ color: "#680000" }}
               >
-                {pageTitle}
+                {currentPage}
               </h1>
             )}
             {pageSubtitle && (
@@ -67,7 +86,7 @@ const StudentPageTemplate: React.FC<PageTemplateProps> = ({
         )}
       </div>
 
-      {/* Content Section */}
+      {/* Page Content */}
       <div className="flex-1">{children}</div>
     </div>
   );

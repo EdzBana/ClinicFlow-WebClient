@@ -22,6 +22,7 @@ export interface MedicalServiceRequest {
   requirements_submitted?: boolean;
   created_at?: string;
   updated_at?: string;
+  assigned_staff?: string;
 }
 
 export interface MedicalServiceResponse {

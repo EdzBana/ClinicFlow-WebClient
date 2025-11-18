@@ -39,6 +39,7 @@ const StudentActivities: React.FC = () => {
     time: "",
     approval_status: "pending",
     requirements_submitted: false,
+    assigned_staff: "",
   });
 
   useEffect(() => {
@@ -135,6 +136,7 @@ const StudentActivities: React.FC = () => {
     const { error } = await updateMedicalServiceRequest(selectedRequest.id, {
       approval_status: modalForm.approval_status,
       requirements_submitted: modalForm.requirements_submitted,
+      assigned_staff: modalForm.assigned_staff,
     });
 
     if (error) {
@@ -266,6 +268,11 @@ const StudentActivities: React.FC = () => {
                         <span className="text-sm">{getSortIcon("time")}</span>
                       </div>
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-opacity-90 select-none">
+                      <div className="flex items-center gap-2">
+                        Assigned Staff
+                      </div>
+                    </th>
                     <th
                       onClick={() => handleSort("approval_status")}
                       className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider cursor-pointer hover:bg-opacity-90 select-none"
@@ -303,6 +310,9 @@ const StudentActivities: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {formatTime(request.time)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        {request.assigned_staff}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -420,6 +430,19 @@ const StudentActivities: React.FC = () => {
                       value={modalForm.time}
                       readOnly
                       className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600 cursor-not-allowed"
+                    />
+                  </div>
+                  {/* Assigned Staff - Editable */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Assigned Staff
+                    </label>
+                    <input
+                      type="text"
+                      name="assigned_staff"
+                      value={modalForm.assigned_staff}
+                      onChange={handleModalInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-600"
                     />
                   </div>
 

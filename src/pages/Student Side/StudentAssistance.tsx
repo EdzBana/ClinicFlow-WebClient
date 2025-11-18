@@ -13,6 +13,10 @@ const StudentAssistance: React.FC = () => {
     navigate("/student-assistance/request-medical-service");
   };
 
+  const handleViewSchedule = () => {
+    navigate("/student-assistance/view-schedule");
+  };
+
   const handleBack = () => {
     navigate("/login");
   };
@@ -24,6 +28,16 @@ const StudentAssistance: React.FC = () => {
     >
       {/* Main Content Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
+        {/* Clinic Hours */}
+        <div className="mb-10 py-6 px-10 text-center border-2 border-red-900 rounded-2xl shadow-md bg-red-900/5">
+          <h1 className="text-2xl md:text-3xl font-semibold text-gray-900">
+            Clinic Hours
+          </h1>
+          <p className="mt-2 text-xl md:text-2xl font-medium text-red-900 tracking-wide">
+            7:00 AM – 8:30 PM
+          </p>
+        </div>
+
         {/* Welcome Message */}
         <div className="mb-10 text-center">
           <h1 className="text-2xl md:text-3xl font-medium leading-tight text-gray-900">
@@ -52,6 +66,13 @@ const StudentAssistance: React.FC = () => {
               <div>Request Medical Service</div>
               <div>for Events</div>
             </div>
+          </button>
+          <button
+            onClick={handleViewSchedule}
+            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#680000" }}
+          >
+            View Schedule
           </button>
         </div>
 

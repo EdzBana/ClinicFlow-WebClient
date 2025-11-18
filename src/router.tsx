@@ -26,6 +26,7 @@ import StudentActivities from "./pages/Appointments/StudentActivities";
 import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
 import Settings from "./pages/Settings";
 import MedServiceSubmitted from "./pages/Student Side/MedServiceSubmitted";
+import SchedulePage from "./pages/Student Side/SchedulePage";
 
 export const router = createBrowserRouter([
   // Auth
@@ -214,6 +215,11 @@ export const router = createBrowserRouter([
     path: "/student-assistance/queue/view",
     element: <ViewQueue />,
     handle: { title: "View Queue" },
+  },
+  {
+    path: "/student-assistance/view-schedule",
+    element: <SchedulePage />,
+    handle: { title: "View Schedule" },
   },
 
   // Redirect root

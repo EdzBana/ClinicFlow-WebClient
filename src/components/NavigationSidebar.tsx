@@ -106,40 +106,44 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
 
   return (
     <div
-      className="w-80 flex flex-col py-8 px-6 sticky top-0 h-screen"
+      className="w-56 md:w-64 lg:w-72 xl:w-80 flex flex-col py-6 md:py-8 px-4 md:px-6 sticky top-0 h-screen flex-shrink-0"
       style={{ backgroundColor: "#680000" }}
     >
       {/* Header */}
-      <div className="flex justify-between items-center mb-5">
-        <h1 className="text-white text-3xl font-medium">Navigation</h1>
+      <div className="flex justify-between items-center mb-4 md:mb-5">
+        <h1 className="text-white text-xl md:text-2xl lg:text-3xl font-medium">
+          Navigation
+        </h1>
         <button
           onClick={handleSettings}
           className="text-white hover:opacity-80 transition-opacity"
           style={{ backgroundColor: "#680000" }}
         >
-          <Settings size={32} />
+          <Settings size={28} className="md:w-8 md:h-8" />
         </button>
       </div>
-      <div className="flex justify-start mb-10">
-        <h1 className="text-white text-3xl font-medium">Mode: {userType}</h1>
+      <div className="flex justify-start mb-6 md:mb-8 lg:mb-10">
+        <h1 className="text-white text-lg md:text-xl lg:text-2xl xl:text-3xl font-medium truncate">
+          Mode: {userType}
+        </h1>
       </div>
 
       {/* Navigation Items */}
-      <div className="flex-1 space-y-4">
+      <div className="flex-1 space-y-3 md:space-y-4 overflow-y-auto">
         {navigationItems.map((item) => (
           <Button
             key={item}
             onClick={() => handlePageClick(item)}
-            className={`w-full py-4 px-6 rounded-2xl text-left text-xl font-medium transition-all duration-200 h-20 ${
+            className={`w-full py-3 md:py-4 px-4 md:px-6 rounded-xl md:rounded-2xl text-left text-base md:text-lg lg:text-xl font-medium transition-all duration-200 h-16 md:h-18 lg:h-20 ${
               currentPage === item
-                ? "bg-white text-gray-800 shadow-md h-20"
+                ? "bg-white text-gray-800 shadow-md"
                 : "text-gray-800 hover:opacity-90"
             }`}
             style={{
               backgroundColor: currentPage === item ? "#FFFFFF" : "#FBBC33",
             }}
           >
-            {item}
+            <span className="block truncate">{item}</span>
           </Button>
         ))}
       </div>
@@ -147,7 +151,7 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = ({
       {/* Logout Button */}
       <Button
         onClick={handleLogout}
-        className="w-full py-4 px-6 bg-white rounded-2xl text-left text-xl font-medium text-gray-800 hover:shadow-md transition-all duration-200 mt-8 h-15"
+        className="w-full py-3 md:py-4 px-4 md:px-6 bg-white rounded-xl md:rounded-2xl text-left text-base md:text-lg lg:text-xl font-medium text-gray-800 hover:shadow-md transition-all duration-200 mt-6 md:mt-8 h-14 md:h-15"
       >
         Logout
       </Button>

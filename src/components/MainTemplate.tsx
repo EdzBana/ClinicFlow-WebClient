@@ -43,20 +43,29 @@ const MainTemplate: React.FC<MainTemplateProps> = ({ children }) => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Header with Dynamic Page Title and Logo */}
         <header
-          className="shadow-sm p-6 flex justify-between items-center"
+          className="shadow-sm p-4 md:p-6 lg:p-8 flex justify-between items-center gap-4"
           style={{ backgroundColor: "#E8E9F3" }}
         >
-          <h1 className="text-5xl font-bold text-gray-900">{currentPage}</h1>
+          <h1 className="text-2xl md:text-3xl lg:text-4xl xl:text-5xl font-bold text-gray-900 truncate">
+            {currentPage}
+          </h1>
 
           {/* University Logo */}
-          <img src={logo} alt="MSEUF Logo" width={120} height={118} />
+          <img
+            src={logo}
+            alt="MSEUF Logo"
+            className="w-16 h-auto md:w-20 lg:w-24 xl:w-28 flex-shrink-0"
+          />
         </header>
 
         {/* Content Area */}
-        <main className="flex-1 p-8" style={{ backgroundColor: "#E8E9F3" }}>
+        <main
+          className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto"
+          style={{ backgroundColor: "#E8E9F3" }}
+        >
           {children}
         </main>
       </div>

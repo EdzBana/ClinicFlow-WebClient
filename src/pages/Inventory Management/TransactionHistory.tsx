@@ -18,6 +18,8 @@ interface Transaction {
   id: string;
   user_type: string;
   method: string;
+  dispensed_to_name: string;
+  dispensed_to_id_number: string;
   created_by: string;
   created_at: string;
   transaction_items: TransactionItem[];
@@ -95,6 +97,8 @@ const TransactionHistory = () => {
                   <tr className="bg-gray-100 text-left">
                     <th className="px-4 py-2 border">ID</th>
                     <th className="px-4 py-2 border">Method</th>
+                    <th className="px-4 py-2 border">Dispensed To: Name</th>
+                    <th className="px-4 py-2 border">Dispensed To: ID</th>
                     <th className="px-4 py-2 border">Created By</th>
                     <th className="px-4 py-2 border">Date</th>
                     <th className="px-4 py-2 border">Items</th>
@@ -108,6 +112,12 @@ const TransactionHistory = () => {
                       </td>
                       <td className="px-4 py-2 border capitalize">
                         {trx.method}
+                      </td>
+                      <td className="px-4 py-2 border capitalize">
+                        {trx.dispensed_to_name}
+                      </td>
+                      <td className="px-4 py-2 border capitalize">
+                        {trx.dispensed_to_id_number}
                       </td>
                       <td className="px-4 py-2 border font-mono text-xs">
                         {trx.created_by.substring(0, 8)}...

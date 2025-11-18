@@ -359,6 +359,19 @@ export interface PatientProfile {
   middle_initial?: string;
   suffix?: string;
   created_at: string;
+  home_address?: string;
+  office_address?: string;
+  contact_no?: string;
+  designation?: string;
+  occupation?: string;
+  gender?: string;
+  marital_status?: string;
+  weight?: string;
+  height?: string;
+  birthdate?: string;
+  age?: string;
+  is_active?: boolean;
+  updated_at?: string;
 }
 
 export interface CreatePatientProfileRequest {
@@ -481,6 +494,8 @@ export interface CreateTransactionRequest {
   method: string;
   created_by: string;
   items: TransactionItemInput[];
+  dispensed_to_name?: string;
+  dispensed_to_id_number?: string;
 }
 
 export interface CreateTransactionResponse {

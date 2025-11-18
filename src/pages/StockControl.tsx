@@ -30,6 +30,8 @@ const StockControl = () => {
     text: "",
   });
   const [searchQuery, setSearchQuery] = useState("");
+  const [recipientName, setRecipientName] = useState("");
+  const [recipientIdNumber, setRecipientIdNumber] = useState("");
 
   const fetchData = async () => {
     try {
@@ -38,14 +40,23 @@ const StockControl = () => {
         apiClient.getItemList(),
         apiClient.getCategories(),
       ]);
-      setItems(
-        (itemsRes.data || []).filter(
+
+      // Filter out duplicate items and exclude "Tools" category
+      const filteredItems = (itemsRes.data || [])
+        .filter(
           (item, index, self) =>
             index === self.findIndex((i) => i.id === item.id)
         )
+        .filter((item) => item.category !== "Tools");
+
+      setItems(filteredItems);
+
+      // Filter out "Tools" category from categories list
+      const filteredCategories = (categoriesRes.data || []).filter(
+        (cat) => cat.name !== "Tools"
       );
 
-      setCategories(categoriesRes.data || []);
+      setCategories(filteredCategories);
     } catch (err) {
       console.error("Failed to load data:", err);
       setMessage({ type: "error", text: "Failed to load stock data" });
@@ -91,6 +102,15 @@ const StockControl = () => {
   const handleCheckout = async () => {
     if (cart.length === 0) return;
 
+    // Validation
+    if (!recipientName.trim() || !recipientIdNumber.trim()) {
+      setMessage({
+        type: "error",
+        text: "Please provide recipient name and ID number",
+      });
+      return;
+    }
+
     setProcessing(true);
     setMessage({ type: "", text: "" });
 
@@ -99,6 +119,8 @@ const StockControl = () => {
         user_type: userType ?? "unknown",
         method: "dispense",
         created_by: user?.id ?? "unknown",
+        dispensed_to_name: recipientName.trim(),
+        dispensed_to_id_number: recipientIdNumber.trim(),
         items: cart.map((ci) => ({
           item_id: ci.item.id,
           quantity: ci.quantity,
@@ -112,7 +134,11 @@ const StockControl = () => {
         type: "success",
         text: response.data?.message ?? "Transaction recorded",
       });
+
+      // Clear the form
       setCart([]);
+      setRecipientName("");
+      setRecipientIdNumber("");
       await fetchData();
     } catch (err: any) {
       console.error("Checkout error:", err);
@@ -207,6 +233,29 @@ const StockControl = () => {
         <div className="lg:col-span-1">
           <div className="bg-white shadow rounded-lg p-6 sticky top-4">
             <h2 className="text-lg font-medium mb-4">Dispense List</h2>
+            {/* Recipient Information */}
+            <div className="mb-4 pb-4 border-b">
+              <label className="block text-sm font-medium mb-2">
+                Dispensed To:
+              </label>
+
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={recipientName}
+                  onChange={(e) => setRecipientName(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+                <input
+                  type="text"
+                  placeholder="ID Number"
+                  value={recipientIdNumber}
+                  onChange={(e) => setRecipientIdNumber(e.target.value)}
+                  className="w-full px-3 py-2 border rounded-md"
+                />
+              </div>
+            </div>
 
             {cart.length === 0 ? (
               <p className="text-gray-500 text-center py-6">

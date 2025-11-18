@@ -1,8 +1,9 @@
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import DepartmentSelect from "../services/DepartmentSelect";
 import Modal from "./Modal";
+import type { PatientProfile } from "@/services/api";
 
 interface FormValues {
   lastName: string;
@@ -28,15 +29,19 @@ interface FormValues {
   age?: string;
 }
 
-export default function AddProfileModal({
-  modalOpen,
-  setModalOpen,
-  onProfileAdded,
-}: {
+interface EditProfileModalProps {
   modalOpen: boolean;
   setModalOpen: (open: boolean) => void;
-  onProfileAdded?: () => void;
-}) {
+  profile: PatientProfile | null;
+  onProfileUpdated?: () => void;
+}
+
+export default function EditProfileModal({
+  modalOpen,
+  setModalOpen,
+  profile,
+  onProfileUpdated,
+}: EditProfileModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -44,7 +49,6 @@ export default function AddProfileModal({
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
     watch,
   } = useForm<FormValues>({
@@ -55,7 +59,40 @@ export default function AddProfileModal({
 
   const selectedDepartment = watch("department");
 
+  // Populate form when profile changes
+  useEffect(() => {
+    if (profile && modalOpen) {
+      setValue("lastName", profile.last_name);
+      setValue("firstName", profile.first_name);
+      setValue("middleInitial", profile.middle_initial || "");
+      setValue("suffix", profile.suffix || "");
+      setValue("idNumber", profile.id_number);
+
+      if (profile.dept_name && profile.dept_code) {
+        setValue("department", {
+          name: profile.dept_name,
+          code: profile.dept_code,
+        });
+      }
+
+      // Set additional fields if they exist
+      setValue("homeAddress", profile.home_address || "");
+      setValue("officeAddress", profile.office_address || "");
+      setValue("contactNo", profile.contact_no || "");
+      setValue("designation", profile.designation || "");
+      setValue("occupation", profile.occupation || "");
+      setValue("gender", profile.gender || "");
+      setValue("maritalStatus", profile.marital_status || "");
+      setValue("weight", profile.weight || "");
+      setValue("height", profile.height || "");
+      setValue("birthdate", profile.birthdate || "");
+      setValue("age", profile.age || "");
+    }
+  }, [profile, modalOpen, setValue]);
+
   const onSubmit = async (data: FormValues) => {
+    if (!profile) return;
+
     setIsSubmitting(true);
     setSubmitError("");
 
@@ -65,6 +102,8 @@ export default function AddProfileModal({
       }
 
       const payload = {
+        action: "update",
+        id: profile.id,
         last_name: data.lastName,
         first_name: data.firstName,
         middle_initial: data.middleInitial || null,
@@ -85,7 +124,7 @@ export default function AddProfileModal({
         age: data.age || null,
       };
 
-      console.log("Submitting payload:", payload);
+      console.log("Updating profile:", payload);
 
       const { data: result, error } = await supabase.functions.invoke(
         "patient-profiles",
@@ -94,12 +133,11 @@ export default function AddProfileModal({
 
       if (error) throw error;
 
-      reset();
       setModalOpen(false);
-      onProfileAdded?.();
-      console.log("Profile added:", result);
+      onProfileUpdated?.();
+      console.log("Profile updated:", result);
     } catch (err: any) {
-      console.error("Error creating profile:", err);
+      console.error("Error updating profile:", err);
       setSubmitError(err.message || "An unexpected error occurred.");
     } finally {
       setIsSubmitting(false);
@@ -130,6 +168,8 @@ export default function AddProfileModal({
     </div>
   );
 
+  if (!profile) return null;
+
   return (
     <Modal>
       {modalOpen && (
@@ -141,7 +181,7 @@ export default function AddProfileModal({
             className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl my-8 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold mb-4">Add New Profile</h2>
+            <h2 className="text-2xl font-bold mb-4">Edit Profile</h2>
 
             {submitError && (
               <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
@@ -321,7 +361,7 @@ export default function AddProfileModal({
                   className="px-6 py-2 bg-red-900 text-white font-medium rounded-lg hover:bg-red-800 transition-colors duration-200 disabled:opacity-50"
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Saving..." : "Save Profile"}
+                  {isSubmitting ? "Updating..." : "Update Profile"}
                 </button>
               </div>
             </form>
