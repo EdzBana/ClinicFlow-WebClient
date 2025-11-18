@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 // Components
 import PrivateRoute from "@/components/PrivateRoute";
+import PublicRoute from "./components/PublicRoute";
 // Auth
 import HealthandDentalLogin from "./auth/HealthDentalLogin";
 // Pages
@@ -32,7 +33,11 @@ export const router = createBrowserRouter([
   // Auth
   {
     path: "/login",
-    element: <HealthandDentalLogin />,
+    element: (
+      <PublicRoute>
+        <HealthandDentalLogin />
+      </PublicRoute>
+    ),
     handle: { title: "Login" },
   },
 
