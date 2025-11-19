@@ -26,6 +26,8 @@ interface FormValues {
   height?: string;
   birthdate?: string;
   age?: string;
+  emergencyPerson?: string;
+  emergencyContact?: string;
 }
 
 export default function AddProfileModal({
@@ -83,6 +85,8 @@ export default function AddProfileModal({
         height: data.height || null,
         birthdate: data.birthdate || null,
         age: data.age || null,
+        emergency_person: data.emergencyPerson || null,
+        emergency_contact: data.emergencyContact || null,
       };
 
       console.log("Submitting payload:", payload);
@@ -221,6 +225,27 @@ export default function AddProfileModal({
                     "Contact Number",
                     "contactNo",
                     errors.contactNo?.message
+                  )}
+                </div>
+              </div>
+
+              {/* Emergency Contact Information */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3 text-gray-800">
+                  Emergency Contact Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {renderInput(
+                    "Emergency Contact Person",
+                    "emergencyPerson",
+                    errors.emergencyPerson?.message
+                  )}
+                  {renderInput(
+                    "Emergency Contact Number",
+                    "emergencyContact",
+                    errors.emergencyContact?.message,
+                    false,
+                    "tel"
                   )}
                 </div>
               </div>

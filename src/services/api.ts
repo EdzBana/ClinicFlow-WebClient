@@ -372,6 +372,8 @@ export interface PatientProfile {
   age?: string;
   is_active?: boolean;
   updated_at?: string;
+  emergency_person?: string;
+  emergency_contact?: string;
 }
 
 export interface CreatePatientProfileRequest {

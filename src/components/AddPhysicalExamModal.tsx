@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { X } from "lucide-react";
+import { X, Upload, Trash2 } from "lucide-react";
 import { physicalExamService } from "@/services/physicalExamService";
+import { storageService } from "@/services/storageService";
 import type { CreatePhysicalExamRecord } from "@/types/physicalExamTypes";
 
 interface AddPhysicalExamModalProps {
@@ -8,6 +9,12 @@ interface AddPhysicalExamModalProps {
   onClose: () => void;
   patientId: string;
   onSuccess: () => void;
+}
+
+interface LabImage {
+  file: File | null;
+  preview: string | null;
+  url: string | null;
 }
 
 const AddPhysicalExamModal = ({
@@ -43,12 +50,25 @@ const AddPhysicalExamModal = ({
     control_number: "",
     exam_date: new Date().toISOString().split("T")[0],
   });
+
+  const [labImages, setLabImages] = useState<Record<string, LabImage>>({
+    cbc: { file: null, preview: null, url: null },
+    chest_xray: { file: null, preview: null, url: null },
+    urinalysis: { file: null, preview: null, url: null },
+    fecalysis: { file: null, preview: null, url: null },
+    ecg: { file: null, preview: null, url: null },
+    hbsag: { file: null, preview: null, url: null },
+    others_lab: { file: null, preview: null, url: null },
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, boolean>>(
+    {}
+  );
   const [error, setError] = useState("");
 
   const handleCheckboxChange = (field: string, group?: string) => {
     if (group) {
-      // For mutually exclusive groups (Normal/Abnormal or Reactive/Nonreactive)
       const groupFields = Object.keys(formData).filter((key) =>
         key.startsWith(group)
       );
@@ -62,19 +82,80 @@ const AddPhysicalExamModal = ({
     }
   };
 
+  const handleImageSelect = (labType: string, file: File | null) => {
+    if (!file) {
+      // Clear image
+      if (labImages[labType].preview) {
+        URL.revokeObjectURL(labImages[labType].preview!);
+      }
+      setLabImages({
+        ...labImages,
+        [labType]: { file: null, preview: null, url: null },
+      });
+      return;
+    }
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file");
+      return;
+    }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size must be less than 5MB");
+      return;
+    }
+
+    // Create preview
+    const preview = URL.createObjectURL(file);
+    setLabImages({
+      ...labImages,
+      [labType]: { file, preview, url: null },
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError("");
 
     try {
+      // Upload all images first
+      const imageUrls: Record<string, string> = {};
+
+      for (const [labType, imageData] of Object.entries(labImages)) {
+        if (imageData.file) {
+          setUploadProgress({ ...uploadProgress, [labType]: true });
+          try {
+            const url = await storageService.uploadLabResultImage(
+              imageData.file,
+              patientId,
+              labType
+            );
+            imageUrls[`${labType}_image_url`] = url;
+          } catch (uploadError) {
+            console.error(`Error uploading ${labType} image:`, uploadError);
+            throw new Error(`Failed to upload ${labType} image`);
+          }
+        }
+      }
+
+      // Create record with image URLs
       await physicalExamService.create({
         patient_id: patientId,
         ...formData,
+        ...imageUrls,
+      });
+
+      // Clean up previews
+      Object.values(labImages).forEach((img) => {
+        if (img.preview) URL.revokeObjectURL(img.preview);
       });
 
       onSuccess();
       onClose();
+
       // Reset form
       setFormData({
         purpose: "",
@@ -101,12 +182,82 @@ const AddPhysicalExamModal = ({
         control_number: "",
         exam_date: new Date().toISOString().split("T")[0],
       });
+      setLabImages({
+        cbc: { file: null, preview: null, url: null },
+        chest_xray: { file: null, preview: null, url: null },
+        urinalysis: { file: null, preview: null, url: null },
+        fecalysis: { file: null, preview: null, url: null },
+        ecg: { file: null, preview: null, url: null },
+        hbsag: { file: null, preview: null, url: null },
+        others_lab: { file: null, preview: null, url: null },
+      });
     } catch (err) {
       console.error("Error adding physical exam record:", err);
-      setError("Failed to add record. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to add record. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
+      setUploadProgress({});
     }
+  };
+
+  const ImageUploadButton = ({
+    labType,
+    label,
+  }: {
+    labType: string;
+    label: string;
+  }) => {
+    const imageData = labImages[labType];
+
+    return (
+      <div className="flex items-center space-x-2">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) =>
+            handleImageSelect(labType, e.target.files?.[0] || null)
+          }
+          className="hidden"
+          id={`image-${labType}`}
+        />
+
+        {imageData.preview || imageData.url ? (
+          <div className="flex items-center space-x-2">
+            <div className="relative w-16 h-16 border border-gray-300 rounded overflow-hidden">
+              <img
+                src={imageData.preview || imageData.url || ""}
+                alt={`${label} result`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => handleImageSelect(labType, null)}
+              className="p-1 text-red-600 hover:text-red-800 transition-colors"
+              title="Remove image"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <label
+            htmlFor={`image-${labType}`}
+            className="flex items-center space-x-1 px-3 py-1 text-sm text-gray-600 bg-gray-100 border border-gray-300 rounded hover:bg-gray-200 cursor-pointer transition-colors"
+          >
+            <Upload className="w-3 h-3" />
+            <span>Attach</span>
+          </label>
+        )}
+
+        {uploadProgress[labType] && (
+          <span className="text-xs text-blue-600">Uploading...</span>
+        )}
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -223,178 +374,196 @@ const AddPhysicalExamModal = ({
             </div>
           </div>
 
-          {/* Lab Results */}
+          {/* Lab Results with Image Upload */}
           <div className="bg-gray-50 p-4 rounded-lg space-y-3">
             <h3 className="font-semibold text-gray-900 mb-3">Lab Results</h3>
 
             {/* CBC */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                CBC
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.cbc_normal}
-                  onChange={() => handleCheckboxChange("cbc_normal", "cbc")}
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Normal</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.cbc_abnormal}
-                  onChange={() => handleCheckboxChange("cbc_abnormal", "cbc")}
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Abnormal</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  CBC
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.cbc_normal}
+                    onChange={() => handleCheckboxChange("cbc_normal", "cbc")}
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Normal</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.cbc_abnormal}
+                    onChange={() => handleCheckboxChange("cbc_abnormal", "cbc")}
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Abnormal</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="cbc" label="CBC" />
             </div>
 
             {/* Chest X-Ray */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                CHEST X-RAY
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.chest_xray_normal}
-                  onChange={() =>
-                    handleCheckboxChange("chest_xray_normal", "chest_xray")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Normal</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.chest_xray_abnormal}
-                  onChange={() =>
-                    handleCheckboxChange("chest_xray_abnormal", "chest_xray")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Abnormal</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  CHEST X-RAY
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.chest_xray_normal}
+                    onChange={() =>
+                      handleCheckboxChange("chest_xray_normal", "chest_xray")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Normal</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.chest_xray_abnormal}
+                    onChange={() =>
+                      handleCheckboxChange("chest_xray_abnormal", "chest_xray")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Abnormal</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="chest_xray" label="Chest X-Ray" />
             </div>
 
             {/* Urinalysis */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                URINALYSIS
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.urinalysis_normal}
-                  onChange={() =>
-                    handleCheckboxChange("urinalysis_normal", "urinalysis")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Normal</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.urinalysis_abnormal}
-                  onChange={() =>
-                    handleCheckboxChange("urinalysis_abnormal", "urinalysis")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Abnormal</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  URINALYSIS
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.urinalysis_normal}
+                    onChange={() =>
+                      handleCheckboxChange("urinalysis_normal", "urinalysis")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Normal</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.urinalysis_abnormal}
+                    onChange={() =>
+                      handleCheckboxChange("urinalysis_abnormal", "urinalysis")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Abnormal</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="urinalysis" label="Urinalysis" />
             </div>
 
             {/* Fecalysis */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                FECALYSIS
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.fecalysis_normal}
-                  onChange={() =>
-                    handleCheckboxChange("fecalysis_normal", "fecalysis")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Normal</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.fecalysis_abnormal}
-                  onChange={() =>
-                    handleCheckboxChange("fecalysis_abnormal", "fecalysis")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Abnormal</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  FECALYSIS
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.fecalysis_normal}
+                    onChange={() =>
+                      handleCheckboxChange("fecalysis_normal", "fecalysis")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Normal</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.fecalysis_abnormal}
+                    onChange={() =>
+                      handleCheckboxChange("fecalysis_abnormal", "fecalysis")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Abnormal</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="fecalysis" label="Fecalysis" />
             </div>
 
             {/* ECG */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                ECG
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.ecg_normal}
-                  onChange={() => handleCheckboxChange("ecg_normal", "ecg")}
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Normal</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.ecg_abnormal}
-                  onChange={() => handleCheckboxChange("ecg_abnormal", "ecg")}
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Abnormal</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  ECG
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.ecg_normal}
+                    onChange={() => handleCheckboxChange("ecg_normal", "ecg")}
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Normal</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.ecg_abnormal}
+                    onChange={() => handleCheckboxChange("ecg_abnormal", "ecg")}
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Abnormal</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="ecg" label="ECG" />
             </div>
 
             {/* HBsAg */}
-            <div className="flex items-center space-x-6">
-              <span className="w-32 text-sm font-medium text-gray-700">
-                HBsAg
-              </span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.hbsag_reactive}
-                  onChange={() =>
-                    handleCheckboxChange("hbsag_reactive", "hbsag")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Reactive</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={formData.hbsag_nonreactive}
-                  onChange={() =>
-                    handleCheckboxChange("hbsag_nonreactive", "hbsag")
-                  }
-                  className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
-                />
-                <span className="text-sm">Nonreactive</span>
-              </label>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-6">
+                <span className="w-32 text-sm font-medium text-gray-700">
+                  HBsAg
+                </span>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.hbsag_reactive}
+                    onChange={() =>
+                      handleCheckboxChange("hbsag_reactive", "hbsag")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Reactive</span>
+                </label>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={formData.hbsag_nonreactive}
+                    onChange={() =>
+                      handleCheckboxChange("hbsag_nonreactive", "hbsag")
+                    }
+                    className="w-4 h-4 text-red-900 border-gray-300 rounded focus:ring-red-900"
+                  />
+                  <span className="text-sm">Nonreactive</span>
+                </label>
+              </div>
+              <ImageUploadButton labType="hbsag" label="HBsAg" />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-700">
                 OTHERS
               </label>
               <input
@@ -406,6 +575,7 @@ const AddPhysicalExamModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent"
                 placeholder="Other lab results..."
               />
+              <ImageUploadButton labType="others_lab" label="Others" />
             </div>
           </div>
 

@@ -94,6 +94,29 @@ const ProfileCard = ({
               </p>
             )}
           </div>
+
+          {/* Emergency Contact Section */}
+          {(profile.emergency_person || profile.emergency_contact) && (
+            <div className="mt-3 pt-3 border-t border-gray-400">
+              <p className="text-xs font-semibold text-gray-700 mb-1 uppercase">
+                Emergency Contact
+              </p>
+              <div className="grid grid-cols-2 gap-x-6 text-sm">
+                {profile.emergency_person && (
+                  <p className="text-gray-600">
+                    <span className="font-medium">Name:</span>{" "}
+                    {profile.emergency_person}
+                  </p>
+                )}
+                {profile.emergency_contact && (
+                  <p className="text-gray-600">
+                    <span className="font-medium">Contact:</span>{" "}
+                    {profile.emergency_contact}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
