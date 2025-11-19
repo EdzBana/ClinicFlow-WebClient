@@ -28,6 +28,8 @@ import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
 import Settings from "./pages/Settings";
 import MedServiceSubmitted from "./pages/Student Side/MedServiceSubmitted";
 import SchedulePage from "./pages/Student Side/SchedulePage";
+import ViewTool from "./pages/Inventory Management/ViewTool";
+import ToolDetail from "./pages/Inventory Management/ToolDetail";
 
 export const router = createBrowserRouter([
   // Auth
@@ -108,6 +110,24 @@ export const router = createBrowserRouter([
       </PrivateRoute>
     ),
     handle: { title: "Transaction History" },
+  },
+  {
+    path: "/tools-management",
+    element: (
+      <PrivateRoute>
+        <ViewTool />
+      </PrivateRoute>
+    ),
+    handle: { title: "Tools Management" },
+  },
+  {
+    path: "/tools-management/view-tool/:id",
+    element: (
+      <PrivateRoute>
+        <ToolDetail />
+      </PrivateRoute>
+    ),
+    handle: { title: "Tool Details" },
   },
 
   // Stock Control
