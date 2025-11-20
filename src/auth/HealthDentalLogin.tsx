@@ -29,7 +29,7 @@ const HealthDentalLogin = () => {
   };
 
   const handleResetPassword = () => {
-    console.log("Reset password clicked");
+    navigate("/forgot-password");
   };
 
   const handleStudentAssistance = () => {

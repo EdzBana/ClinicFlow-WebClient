@@ -30,6 +30,8 @@ import MedServiceSubmitted from "./pages/Student Side/MedServiceSubmitted";
 import SchedulePage from "./pages/Student Side/SchedulePage";
 import ViewTool from "./pages/Inventory Management/ViewTool";
 import ToolDetail from "./pages/Inventory Management/ToolDetail";
+import { RequestPasswordReset } from "./auth/RequestPasswordReset";
+import { ChangePassword } from "./auth/ChangePassword";
 
 export const router = createBrowserRouter([
   // Auth
@@ -41,6 +43,16 @@ export const router = createBrowserRouter([
       </PublicRoute>
     ),
     handle: { title: "Login" },
+  },
+  {
+    path: "/forgot-password",
+    element: <RequestPasswordReset />,
+    handle: { title: "Forgot Password" },
+  },
+  {
+    path: "/reset-password",
+    element: <ChangePassword />,
+    handle: { title: "Reset Password" },
   },
 
   // Dashboard

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import MainTemplate from "@/components/MainTemplate";
 import { Eye, EyeOff } from "lucide-react";
+import PWAInstallButton from "@/components/PWAInstallButton";
 
 export default function Settings() {
   // Change password state
@@ -170,6 +171,14 @@ export default function Settings() {
             </button>
           </form>
           {bugMessage && <p className="mt-2">{bugMessage}</p>}
+        </section>
+        <section className="p-6 border bg-white rounded-xl shadow-sm">
+          <h2 className="text-2xl font-semibold text-gray-700">
+            Install Application Locally
+          </h2>
+          <div className="mt-4">
+            <PWAInstallButton />
+          </div>
         </section>
       </div>
     </MainTemplate>
