@@ -246,7 +246,7 @@ const Inventory = () => {
     <MainTemplate>
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <div className="relative w-96">
+          <div className="relative w-full max-w-xs md:max-w-sm lg:max-w-md">
             <input
               type="text"
               placeholder="Search Item..."
@@ -258,64 +258,70 @@ const Inventory = () => {
           </div>
         </div>
 
-        <div className="flex gap-6">
+        <div className="flex flex-col lg:flex-row gap-6">
           <div className="flex-1">
             <div className="bg-white rounded-lg shadow overflow-hidden">
               {renderEmptyState() || (
-                <table className="w-full">
-                  <thead className="bg-gray-500 text-white">
-                    <tr>
-                      {TABLE_COLUMNS.map((col) => (
-                        <th
-                          key={col.key}
-                          onClick={() =>
-                            handleSort(col.key as keyof InventoryItem)
-                          }
-                          className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-gray-600"
-                        >
-                          {col.label}{" "}
-                          {sortConfig?.key === col.key &&
-                            (sortConfig.direction === "asc" ? "▲" : "▼")}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedItems.map((item) => (
-                      <tr
-                        key={item.id}
-                        onClick={() =>
-                          navigate(`/inventory-management/view-item/${item.id}`)
-                        }
-                        className={`border-b cursor-pointer hover:bg-gray-100 transition ${getRowBackgroundColor(
-                          item.status
-                        )}`}
-                      >
-                        <td className="px-4 py-3 text-sm">{item.itemName}</td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.genericName || "—"}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{item.category}</td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.quantityBox}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.unitQuantity}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          ₱{item.costPerUnit.toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          ₱{item.costPerBox.toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3 text-sm">
-                          {item.expirationDate}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{item.receivedAt}</td>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[800px]">
+                    <thead className="bg-gray-500 text-white">
+                      <tr>
+                        {TABLE_COLUMNS.map((col) => (
+                          <th
+                            key={col.key}
+                            onClick={() =>
+                              handleSort(col.key as keyof InventoryItem)
+                            }
+                            className="px-4 py-3 text-left text-sm font-medium cursor-pointer hover:bg-gray-600"
+                          >
+                            {col.label}{" "}
+                            {sortConfig?.key === col.key &&
+                              (sortConfig.direction === "asc" ? "▲" : "▼")}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {paginatedItems.map((item) => (
+                        <tr
+                          key={item.id}
+                          onClick={() =>
+                            navigate(
+                              `/inventory-management/view-item/${item.id}`
+                            )
+                          }
+                          className={`border-b cursor-pointer hover:bg-gray-100 transition ${getRowBackgroundColor(
+                            item.status
+                          )}`}
+                        >
+                          <td className="px-4 py-3 text-sm">{item.itemName}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {item.genericName || "—"}
+                          </td>
+                          <td className="px-4 py-3 text-sm">{item.category}</td>
+                          <td className="px-4 py-3 text-sm">
+                            {item.quantityBox}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {item.unitQuantity}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            ₱{item.costPerUnit.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            ₱{item.costPerBox.toFixed(2)}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {item.expirationDate}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {item.receivedAt}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
             </div>
 
@@ -342,7 +348,7 @@ const Inventory = () => {
             )}
           </div>
 
-          <aside className="w-80 space-y-4">
+          <aside className="w-full lg:w-80 space-y-4">
             <div className="bg-white p-4 rounded-lg shadow">
               <h3 className="text-lg font-medium mb-4">Filter By:</h3>
               <div className="space-y-3">

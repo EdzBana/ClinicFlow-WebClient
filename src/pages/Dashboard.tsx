@@ -225,14 +225,6 @@ const Dashboard = () => {
   return (
     <MainTemplate>
       <div className="space-y-6">
-        {/* Header */}
-        <div>
-          <h1 className="text-4xl font-bold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600 mt-2">
-            Overview of your inventory and activities
-          </p>
-        </div>
-
         {/* Alert Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Expired Items Alert */}

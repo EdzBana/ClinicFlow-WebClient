@@ -19,10 +19,33 @@ const AppointmentsMain = () => {
 
   return (
     <MainTemplate>
-      <div className="flex items-center justify-center pt-40 gap-10">
+      <div
+        className="
+          flex flex-col 
+          md:flex-row 
+          flex-wrap 
+          items-center 
+          justify-center 
+          gap-6 
+          pt-10 
+          md:pt-20 
+          lg:pt-32
+        "
+      >
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
-          className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+          className="
+            w-full 
+            max-w-xs 
+            md:w-60 
+            md:h-32 
+            text-lg 
+            font-semibold 
+            rounded-lg 
+            shadow-lg 
+            transition 
+            hover:opacity-90
+          "
           onClick={handleQueue}
         >
           Queueing System
@@ -30,14 +53,37 @@ const AppointmentsMain = () => {
 
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
-          className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+          className="
+            w-full 
+            max-w-xs 
+            md:w-60 
+            md:h-32 
+            text-lg 
+            font-semibold 
+            rounded-lg 
+            shadow-lg 
+            transition 
+            hover:opacity-90
+          "
           onClick={handleStudentActivities}
         >
           Student Activities
         </Button>
+
         <Button
           style={{ backgroundColor: "#680000", color: "white" }}
-          className="w-90 h-45 text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+          className="
+            w-full 
+            max-w-xs 
+            md:w-60 
+            md:h-32 
+            text-lg 
+            font-semibold 
+            rounded-lg 
+            shadow-lg 
+            transition 
+            hover:opacity-90
+          "
           onClick={handleHistory}
         >
           Queue History
