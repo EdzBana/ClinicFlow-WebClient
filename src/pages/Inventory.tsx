@@ -7,6 +7,7 @@ import {
   type ItemCategory,
 } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 interface InventoryItem {
   id: string;
@@ -121,6 +122,8 @@ const Inventory = () => {
     key: keyof InventoryItem;
     direction: "asc" | "desc";
   } | null>(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -281,7 +284,10 @@ const Inventory = () => {
                     {paginatedItems.map((item) => (
                       <tr
                         key={item.id}
-                        className={`border-b ${getRowBackgroundColor(
+                        onClick={() =>
+                          navigate(`/inventory-management/view-item/${item.id}`)
+                        }
+                        className={`border-b cursor-pointer hover:bg-gray-100 transition ${getRowBackgroundColor(
                           item.status
                         )}`}
                       >

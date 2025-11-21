@@ -10,6 +10,8 @@ import { toolService } from "@/services/toolService";
 import type { CreateToolRequest } from "@/types/tools";
 import { logout } from "@/auth/auth";
 import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+import { Toaster } from "sonner";
 
 const AddItem = () => {
   const { userType } = useAuth();
@@ -45,7 +47,6 @@ const AddItem = () => {
   const [categories, setCategories] = useState<ItemCategory[]>([]);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string | null>>({});
-  const [success, setSuccess] = useState(false);
   const [quantityMode, setQuantityMode] = useState<"box" | "unit">("box");
 
   // Fetch categories
@@ -223,9 +224,8 @@ const AddItem = () => {
         return;
       }
 
-      setSuccess(true);
+      toast.success("Inventory item successfully added!");
       handleInventoryReset();
-      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
       console.error("Error adding item:", error);
       setErrors({ submit: "Failed to add item. Please try again." });
@@ -261,9 +261,8 @@ const AddItem = () => {
         return;
       }
 
-      setSuccess(true);
+      toast.success("Tool successfully added!");
       handleToolReset();
-      setTimeout(() => setSuccess(false), 3000);
     } catch (error) {
       console.error("Error adding tool:", error);
       setErrors({ submit: "Failed to add tool. Please try again." });
@@ -286,8 +285,6 @@ const AddItem = () => {
       minThresholdType: "unit",
       quantityPerBox: "",
     });
-    setErrors({});
-    setSuccess(false);
   };
 
   const handleToolReset = () => {
@@ -298,12 +295,11 @@ const AddItem = () => {
       condition: "good",
       notes: "",
     });
-    setErrors({});
-    setSuccess(false);
   };
 
   return (
     <MainTemplate>
+      <Toaster position="top-center" richColors closeButton />
       <div className="flex justify-start mb-6">
         <button
           type="button"
@@ -323,7 +319,6 @@ const AddItem = () => {
               onClick={() => {
                 setAddMode("inventory");
                 setErrors({});
-                setSuccess(false);
               }}
               className={`px-6 py-2 rounded-lg font-medium transition ${
                 addMode === "inventory"
@@ -337,7 +332,6 @@ const AddItem = () => {
               onClick={() => {
                 setAddMode("tool");
                 setErrors({});
-                setSuccess(false);
               }}
               className={`px-6 py-2 rounded-lg font-medium transition ${
                 addMode === "tool"
@@ -354,17 +348,6 @@ const AddItem = () => {
               ? "Add New Inventory Item"
               : "Add New Tool"}
           </h2>
-
-          {success && (
-            <div className="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded">
-              {addMode === "inventory" ? "Item" : "Tool"} added successfully!
-            </div>
-          )}
-          {errors.submit && (
-            <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-              {errors.submit}
-            </div>
-          )}
 
           {/* Inventory Form */}
           {addMode === "inventory" && (

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import logo from "../assets/mseuf_logo.webp";
 import { useNavigate } from "react-router-dom";
 import { login } from "./auth";
+import PWAInstallButton from "@/components/PWAInstallButton";
 
 const HealthDentalLogin = () => {
   const [email, setEmail] = useState("");
@@ -131,6 +132,7 @@ const HealthDentalLogin = () => {
               Assistance
             </Button>
           </div>
+          <PWAInstallButton />
         </div>
       </div>
     </div>
