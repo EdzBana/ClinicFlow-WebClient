@@ -132,8 +132,10 @@ const HealthDentalLogin = () => {
               Assistance
             </Button>
           </div>
-          <PWAInstallButton />
         </div>
+      </div>
+      <div className="mb-8">
+        <PWAInstallButton />
       </div>
     </div>
   );
