@@ -133,7 +133,7 @@ const HealthDentalLogin = () => {
             </Button>
           </div>
         </div>
-        <div className="mb-8">
+        <div className="mt-20">
           <PWAInstallButton />
         </div>
       </div>
