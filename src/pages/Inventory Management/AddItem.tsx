@@ -11,7 +11,6 @@ import type { CreateToolRequest } from "@/types/tools";
 import { logout } from "@/auth/auth";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
-import { Toaster } from "sonner";
 
 const AddItem = () => {
   const { userType } = useAuth();
@@ -299,7 +298,6 @@ const AddItem = () => {
 
   return (
     <MainTemplate>
-      <Toaster position="top-center" richColors closeButton />
       <div className="flex justify-start mb-6">
         <button
           type="button"

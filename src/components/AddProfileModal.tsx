@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import DepartmentSelect from "../services/DepartmentSelect";
 import Modal from "./Modal";
+import { toast } from "sonner";
 
 interface FormValues {
   lastName: string;
@@ -100,11 +101,17 @@ export default function AddProfileModal({
 
       reset();
       setModalOpen(false);
+      toast.success("Profile added successfully!", {
+        description: `${data.firstName} ${data.lastName} has been added to the system.`,
+      });
       onProfileAdded?.();
       console.log("Profile added:", result);
     } catch (err: any) {
       console.error("Error creating profile:", err);
       setSubmitError(err.message || "An unexpected error occurred.");
+      toast.error("Failed to add profile", {
+        description: err.message || "An unexpected error occurred.",
+      });
     } finally {
       setIsSubmitting(false);
     }

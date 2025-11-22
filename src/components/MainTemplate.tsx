@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import NavigationSidebar from "@/components/NavigationSidebar";
 import logo from "../assets/mseuf_logo.webp";
 import { useMatches } from "react-router-dom";
+import { Toaster } from "./ui/sonner";
 
 interface MainTemplateProps {
   children?: React.ReactNode;
@@ -35,6 +36,7 @@ const MainTemplate: React.FC<MainTemplateProps> = ({ children }) => {
 
   return (
     <div className="flex min-h-screen" style={{ backgroundColor: "#E8E9F3" }}>
+      <Toaster position="top-center" richColors closeButton />
       {/* Sidebar Navigation */}
       <NavigationSidebar
         activePage={currentPage}
