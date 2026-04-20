@@ -11,6 +11,150 @@ import DentalTreatmentTab from "@/components/DentalTreatmentTab";
 import PhysicalRecordTab from "@/components/PhysicalRecordTab";
 import FileRecordsTab from "@/components/FileRecordsTab";
 import { useAuth } from "@/hooks/useAuth";
+import { medicalWalkinService } from "@/services/medicalDentalService";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts";
+import { Activity } from "lucide-react";
+
+const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
+  const [chartData, setChartData] = useState<
+    { month: string; count: number }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const records = await medicalWalkinService.getByPatientId(patientId);
+
+        // Build last 12 months map
+        const monthMap = new Map<string, number>();
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(1);
+          d.setMonth(d.getMonth() - i);
+          const key = d.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+          monthMap.set(key, 0);
+        }
+
+        records.forEach((record) => {
+          if (!record.date) return;
+          const d = new Date(record.date);
+          const key = d.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+          if (monthMap.has(key))
+            monthMap.set(key, (monthMap.get(key) || 0) + 1);
+        });
+
+        setChartData(
+          [...monthMap.entries()].map(([month, count]) => ({ month, count })),
+        );
+      } catch (err) {
+        console.error("Error fetching walk-in frequency:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [patientId]);
+
+  const total = chartData.reduce((sum, d) => sum + d.count, 0);
+  const peak = chartData.reduce((max, d) => (d.count > max.count ? d : max), {
+    month: "",
+    count: 0,
+  });
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-red-100 rounded-full p-2">
+            <Activity className="w-5 h-5 text-red-900" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Walk-in Frequency
+            </h3>
+            <p className="text-sm text-gray-500">
+              Monthly visits over the last 12 months
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-6 text-right">
+          <div>
+            <p className="text-xs text-gray-500">Total Visits</p>
+            <p className="text-2xl font-bold text-red-900">{total}</p>
+          </div>
+          {peak.count > 0 && (
+            <div>
+              <p className="text-xs text-gray-500">Peak Month</p>
+              <p className="text-lg font-bold text-gray-700">{peak.month}</p>
+              <p className="text-xs text-gray-400">
+                {peak.count} visit{peak.count !== 1 ? "s" : ""}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="h-48 flex items-center justify-center">
+          <p className="text-gray-400 text-sm">Loading chart...</p>
+        </div>
+      ) : total === 0 ? (
+        <div className="h-48 flex items-center justify-center">
+          <p className="text-gray-400 text-sm italic">
+            No walk-in records in the last 12 months.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 10, left: -20, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11 }}
+              angle={-30}
+              textAnchor="end"
+              height={50}
+            />
+            <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
+            <Tooltip formatter={(value: number) => [value, "Visits"]} />
+            <Bar dataKey="count" name="Visits" radius={[4, 4, 0, 0]}>
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={
+                    entry.count === peak.count && entry.count > 0
+                      ? "#680000"
+                      : "#f87171"
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
 
 const ProfileCard = ({
   profile,
@@ -196,12 +340,12 @@ const RecordDetail = () => {
     (selectedProfile: PatientProfile) => {
       navigate(`/records/${selectedProfile.id}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const searchProfiles = useCallback(
     (query: string) => apiClient.searchPatientProfiles(query, 10),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -252,10 +396,15 @@ const RecordDetail = () => {
           <p className="text-gray-400 text-lg">Loading profile...</p>
         </div>
       ) : profile ? (
-        <ProfileCard
-          profile={profile}
-          onEditProfile={() => setEditModalOpen(true)}
-        />
+        <>
+          <ProfileCard
+            profile={profile}
+            onEditProfile={() => setEditModalOpen(true)}
+          />
+          {userType !== "Dental" && (
+            <WalkinFrequencyChart patientId={profile.id} />
+          )}
+        </>
       ) : (
         <div className="flex items-center justify-center h-64">
           <p className="text-gray-400 text-lg">Profile not found</p>

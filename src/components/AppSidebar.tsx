@@ -115,7 +115,11 @@ const AppSidebar: React.FC = () => {
   return (
     <Sidebar
       style={{ backgroundColor: "#680000" }}
-      className="border-r border-white/10 bg-[#680000]"
+      className="border-r border-white/10 bg-[#680000]
+    lg:static lg:translate-x-0
+    fixed inset-y-0 left-0 z-50 w-64
+    -translate-x-full data-[state=open]:translate-x-0
+    transition-transform"
     >
       <SidebarHeader className="border-b border-white/10 bg-[#680000]">
         <div className="flex items-center justify-between px-2 py-2">

@@ -21,7 +21,7 @@ export const medicalWalkinService = {
   },
 
   async create(
-    record: CreateMedicalWalkinHistory
+    record: CreateMedicalWalkinHistory,
   ): Promise<MedicalWalkinHistory> {
     const { data, error } = await supabase
       .from("medical_walkin_history")
@@ -35,7 +35,7 @@ export const medicalWalkinService = {
 
   async update(
     id: string,
-    updates: Partial<CreateMedicalWalkinHistory>
+    updates: Partial<CreateMedicalWalkinHistory>,
   ): Promise<MedicalWalkinHistory> {
     const { data, error } = await supabase
       .from("medical_walkin_history")
@@ -56,6 +56,14 @@ export const medicalWalkinService = {
 
     if (error) throw error;
   },
+  async getAll(): Promise<MedicalWalkinHistory[]> {
+    const { data, error } = await supabase
+      .from("medical_walkin_history")
+      .select("*")
+      .order("date", { ascending: false });
+    if (error) throw error;
+    return data || [];
+  },
 };
 
 // Dental Treatment Record Service
@@ -72,7 +80,7 @@ export const dentalTreatmentService = {
   },
 
   async create(
-    record: CreateDentalTreatmentRecord
+    record: CreateDentalTreatmentRecord,
   ): Promise<DentalTreatmentRecord> {
     const { data, error } = await supabase
       .from("dental_treatment_record")
@@ -86,7 +94,7 @@ export const dentalTreatmentService = {
 
   async update(
     id: string,
-    updates: Partial<CreateDentalTreatmentRecord>
+    updates: Partial<CreateDentalTreatmentRecord>,
   ): Promise<DentalTreatmentRecord> {
     const { data, error } = await supabase
       .from("dental_treatment_record")

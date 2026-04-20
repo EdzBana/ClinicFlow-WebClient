@@ -1,7 +1,30 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { medicalWalkinService } from "@/services/medicalDentalService";
-import type { CreateMedicalWalkinHistory } from "@/types/records";
+//import type { CreateMedicalWalkinHistory } from "@/types/records";
+
+const COMMON_COMPLAINTS = [
+  "Fever",
+  "Cough",
+  "Colds / Runny Nose",
+  "Headache",
+  "Sore Throat",
+  "Body Pain / Myalgia",
+  "Fatigue / Weakness",
+  "Nausea / Vomiting",
+  "Diarrhea",
+  "Stomach Pain / Abdominal Pain",
+  "Dizziness",
+  "Shortness of Breath",
+  "Chest Pain",
+  "Back Pain",
+  "Rashes / Skin Irritation",
+  "Eye Irritation / Redness",
+  "Toothache",
+  "Wound / Laceration",
+  "High Blood Pressure",
+  "Low Blood Sugar",
+];
 
 interface AddWalkinHistoryModalProps {
   isOpen: boolean;
@@ -16,17 +39,24 @@ const AddWalkinHistoryModal = ({
   patientId,
   onSuccess,
 }: AddWalkinHistoryModalProps) => {
-  const [formData, setFormData] = useState<
-    Omit<CreateMedicalWalkinHistory, "patient_id">
-  >({
+  const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     time: new Date().toTimeString().slice(0, 5),
     notes: "",
     treatment: "",
-    complaints_and_vital: "",
+    complaints_and_vital: [] as string[],
+    complaints_other: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+
+  const toggleComplaint = (complaint: string) => {
+    const current = formData.complaints_and_vital as string[];
+    const updated = current.includes(complaint)
+      ? current.filter((c) => c !== complaint)
+      : [...current, complaint];
+    setFormData({ ...formData, complaints_and_vital: updated });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +76,8 @@ const AddWalkinHistoryModal = ({
         time: new Date().toTimeString().slice(0, 5),
         notes: "",
         treatment: "",
-        complaints_and_vital: "",
+        complaints_and_vital: [],
+        complaints_other: "",
       });
     } catch (err) {
       console.error("Error adding walk-in history:", err);
@@ -57,6 +88,8 @@ const AddWalkinHistoryModal = ({
   };
 
   if (!isOpen) return null;
+
+  const selectedComplaints = formData.complaints_and_vital as string[];
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -95,7 +128,6 @@ const AddWalkinHistoryModal = ({
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent"
               />
             </div>
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Time *
@@ -111,23 +143,46 @@ const AddWalkinHistoryModal = ({
               />
             </div>
           </div>
+
+          {/* Chief Complaints */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Chief Complaints & Vital Signs
             </label>
-            <textarea
-              value={formData.complaints_and_vital}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  complaints_and_vital: e.target.value,
-                })
-              }
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent"
-              placeholder="Enter chief complaints and vital signs..."
-            />
+            <div className="grid grid-cols-2 gap-2 p-3 border border-gray-300 rounded-lg bg-gray-50 max-h-52 overflow-y-auto">
+              {COMMON_COMPLAINTS.map((complaint) => (
+                <label
+                  key={complaint}
+                  className="flex items-center gap-2 cursor-pointer text-sm text-gray-700 hover:text-gray-900"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedComplaints.includes(complaint)}
+                    onChange={() => toggleComplaint(complaint)}
+                    className="accent-red-900 w-4 h-4 rounded"
+                  />
+                  {complaint}
+                </label>
+              ))}
+            </div>
+
+            {/* Others */}
+            <div className="mt-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Others
+              </label>
+              <textarea
+                value={formData.complaints_other ?? ""}
+                onChange={(e) =>
+                  setFormData({ ...formData, complaints_other: e.target.value })
+                }
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-900 focus:border-transparent"
+                placeholder="Specify other complaints or vital sign readings..."
+              />
+            </div>
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Treatment
