@@ -4,6 +4,8 @@ import { apiClient } from "@/services/api";
 import { queueService } from "@/services/queueService";
 import { useAuth } from "@/hooks/useAuth";
 import { medicalWalkinService } from "@/services/medicalDentalService";
+import { getAppointmentsByStatus } from "@/services/appointmentService";
+import { getMedicalServiceRequestsByStatus } from "@/services/medicalService";
 import {
   LineChart,
   Line,
@@ -23,6 +25,8 @@ import {
   Calendar,
   TrendingUp,
   Activity,
+  ClipboardList,
+  Stethoscope,
 } from "lucide-react";
 
 const NEAR_EXPIRATION_DAYS = 14;
@@ -31,6 +35,8 @@ interface DashboardStats {
   lowStockCount: number;
   nearExpirationCount: number;
   expiredCount: number;
+  pendingAppointments: number;
+  pendingServiceRequests: number;
 }
 
 interface ChartData {
@@ -90,6 +96,8 @@ const Dashboard = () => {
     lowStockCount: 0,
     nearExpirationCount: 0,
     expiredCount: 0,
+    pendingAppointments: 0,
+    pendingServiceRequests: 0,
   });
   const [dispenseData, setDispenseData] = useState<ChartData[]>([]);
   const [appointmentData, setAppointmentData] = useState<AppointmentData[]>([]);
@@ -105,36 +113,57 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchInventoryAlerts = async () => {
       try {
-        const response = await apiClient.getItemList();
-        if (response.error || !response.data) return;
-
-        const items = response.data.filter(
-          (item) => item.item_type === userType,
-        );
+        const [itemsResponse, appointmentsResponse, serviceRequestsResponse] =
+          await Promise.all([
+            apiClient.getItemList(),
+            getAppointmentsByStatus("pending"),
+            userType === "Medical"
+              ? getMedicalServiceRequestsByStatus("pending")
+              : Promise.resolve({ data: [], error: null }),
+          ]);
 
         let lowStock = 0;
         let nearExpiration = 0;
         let expired = 0;
 
-        items.forEach((item) => {
-          if (item.expiration_date) {
-            const diffDays = calculateDaysDifference(item.expiration_date);
-            if (diffDays < 0) expired++;
-            else if (diffDays <= NEAR_EXPIRATION_DAYS) nearExpiration++;
-          }
+        if (!itemsResponse.error && itemsResponse.data) {
+          const items = itemsResponse.data.filter(
+            (item) => item.item_type === userType,
+          );
 
-          const currentQuantity =
-            item.min_thresh_type === "unit"
-              ? parseInt(item.quantity_unit, 10)
-              : parseInt(item.quantity_box, 10);
+          items.forEach((item) => {
+            if (item.expiration_date) {
+              const diffDays = calculateDaysDifference(item.expiration_date);
+              if (diffDays < 0) expired++;
+              else if (diffDays <= NEAR_EXPIRATION_DAYS) nearExpiration++;
+            }
 
-          if (currentQuantity <= item.min_threshold) lowStock++;
-        });
+            const currentQuantity =
+              item.min_thresh_type === "unit"
+                ? parseInt(item.quantity_unit, 10)
+                : parseInt(item.quantity_box, 10);
+
+            if (currentQuantity <= item.min_threshold) lowStock++;
+          });
+        }
+
+        const pendingAppointments = Array.isArray(appointmentsResponse.data)
+          ? appointmentsResponse.data.filter((a) => a.service_type === userType)
+              .length
+          : 0;
+
+        const pendingServiceRequests = Array.isArray(
+          serviceRequestsResponse.data,
+        )
+          ? serviceRequestsResponse.data.length
+          : 0;
 
         setStats({
           lowStockCount: lowStock,
           nearExpirationCount: nearExpiration,
           expiredCount: expired,
+          pendingAppointments,
+          pendingServiceRequests,
         });
       } catch (error) {
         console.error("Error fetching inventory alerts:", error);
@@ -344,7 +373,8 @@ const Dashboard = () => {
     <MainTemplate>
       <div className="space-y-6">
         {/* Alert Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {/* Expired Items Alert */}
           <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-red-600">
             <div className="flex items-center justify-between">
@@ -402,8 +432,48 @@ const Dashboard = () => {
               Items below minimum threshold
             </p>
           </div>
-        </div>
+          {/* Pending Appointments */}
+          <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-blue-500">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">
+                  Pending Appointments
+                </p>
+                <p className="text-3xl font-bold text-blue-500 mt-2">
+                  {stats.pendingAppointments}
+                </p>
+              </div>
+              <div className="bg-blue-100 rounded-full p-3">
+                <ClipboardList className="w-8 h-8 text-blue-500" />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-4">
+              Appointments awaiting confirmation
+            </p>
+          </div>
 
+          {/* Pending Service Requests — Medical only */}
+          {userType === "Medical" && (
+            <div className="bg-white rounded-lg shadow-lg p-6 border-l-4 border-purple-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Pending Service Requests
+                  </p>
+                  <p className="text-3xl font-bold text-purple-500 mt-2">
+                    {stats.pendingServiceRequests}
+                  </p>
+                </div>
+                <div className="bg-purple-100 rounded-full p-3">
+                  <Stethoscope className="w-8 h-8 text-purple-500" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-4">
+                Medical service requests awaiting approval
+              </p>
+            </div>
+          )}
+        </div>
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Item Dispenses Chart */}
@@ -504,7 +574,6 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-
         {/* Transaction History Graph */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-6">
@@ -718,7 +787,6 @@ const Dashboard = () => {
             )}
           </div>
         )}
-
         {/* Additional Info Section */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <h2 className="text-xl font-bold text-gray-800 mb-4">

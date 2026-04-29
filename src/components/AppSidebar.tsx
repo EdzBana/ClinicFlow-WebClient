@@ -48,11 +48,20 @@ const AppSidebar: React.FC = () => {
       title: "Inventory",
       path: "/inventory",
       icon: Package,
-    },
-    {
-      title: "Inventory Management",
-      path: "/inventory-management",
-      icon: Boxes,
+      subItems: [
+        {
+          title: "Main",
+          path: "/inventory",
+        },
+        {
+          title: "Tools Management",
+          path: "/tools-management",
+        },
+        {
+          title: "Transaction History",
+          path: "/inventory-management/transaction-history",
+        },
+      ],
     },
     {
       title: "Stock Control",
@@ -80,6 +89,10 @@ const AppSidebar: React.FC = () => {
         {
           title: "Queue History",
           path: "/appointments/queue-history",
+        },
+        {
+          title: "Appointments Scheduling",
+          path: "/appointments/scheduling",
         },
       ],
     },
