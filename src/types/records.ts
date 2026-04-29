@@ -7,6 +7,7 @@ export interface MedicalWalkinHistory {
   notes: string | null;
   treatment: string | null;
   complaints_and_vital: string | null;
+  complaints_other: string;
 }
 
 export interface CreateMedicalWalkinHistory {
@@ -15,7 +16,8 @@ export interface CreateMedicalWalkinHistory {
   time: string;
   notes?: string;
   treatment?: string;
-  complaints_and_vital?: string;
+  complaints_and_vital: string[];
+  complaints_other?: string;
 }
 
 // Dental Treatment Record Types

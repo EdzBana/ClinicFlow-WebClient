@@ -11,12 +11,12 @@ import type { CreateToolRequest } from "@/types/tools";
 import { logout } from "@/auth/auth";
 import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { useSearchParams } from "react-router-dom";
 
 const AddItem = () => {
   const { userType } = useAuth();
-
-  // Toggle between inventory and tool
-  const [addMode, setAddMode] = useState<"inventory" | "tool">("inventory");
+  const [searchParams] = useSearchParams();
+  const addMode = searchParams.get("mode") === "tool" ? "tool" : "inventory";
 
   // Inventory form state
   const [inventoryFormData, setInventoryFormData] = useState({
@@ -69,7 +69,7 @@ const AddItem = () => {
   };
 
   const handleInventoryInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setInventoryFormData((prev) => ({
@@ -85,7 +85,7 @@ const AddItem = () => {
   const handleToolInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     setToolFormData((prev) => ({
@@ -305,42 +305,12 @@ const AddItem = () => {
           className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Inventory Management
+          Back
         </button>
       </div>
 
       <div className="p-8 max-w-4xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6">
-          {/* Mode Toggle */}
-          <div className="flex justify-center gap-4 mb-6">
-            <button
-              onClick={() => {
-                setAddMode("inventory");
-                setErrors({});
-              }}
-              className={`px-6 py-2 rounded-lg font-medium transition ${
-                addMode === "inventory"
-                  ? "bg-red-800 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              Add Inventory Item
-            </button>
-            <button
-              onClick={() => {
-                setAddMode("tool");
-                setErrors({});
-              }}
-              className={`px-6 py-2 rounded-lg font-medium transition ${
-                addMode === "tool"
-                  ? "bg-red-800 text-white"
-                  : "bg-gray-200 hover:bg-gray-300"
-              }`}
-            >
-              Add Tool
-            </button>
-          </div>
-
           <h2 className="text-2xl font-bold text-gray-800 mb-6">
             {addMode === "inventory"
               ? "Add New Inventory Item"

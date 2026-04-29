@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search } from "lucide-react";
 import MainTemplate from "@/components/MainTemplate";
 import { useNavigate } from "react-router-dom";
 import { toolService } from "@/services/toolService";
@@ -119,7 +119,7 @@ const ViewTool = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = filteredAndSortedItems.slice(
     startIndex,
-    startIndex + ITEMS_PER_PAGE
+    startIndex + ITEMS_PER_PAGE,
   );
 
   const handleSort = (key: string) => {
@@ -159,20 +159,13 @@ const ViewTool = () => {
     return null;
   };
 
+  const handleAddItem = () => {
+    navigate("/inventory-management/add-item?mode=tool");
+  };
+
   return (
     <MainTemplate>
       <div className="space-y-6">
-        <div className="flex justify-start">
-          <button
-            type="button"
-            onClick={() => window.history.back()}
-            className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Tools Management
-          </button>
-        </div>
-
         <div className="flex justify-between items-center gap-4">
           <div className="relative w-96">
             <input
@@ -184,6 +177,12 @@ const ViewTool = () => {
             />
             <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
+          <button
+            className="mr-12 px-20 py-2 bg-red-900 text-white font-medium rounded-lg hover:bg-red-800 transition-colors duration-200"
+            onClick={handleAddItem}
+          >
+            Add Item
+          </button>
         </div>
 
         <div className="flex gap-6">
@@ -249,7 +248,7 @@ const ViewTool = () => {
                     >
                       {page}
                     </button>
-                  )
+                  ),
                 )}
               </div>
             )}

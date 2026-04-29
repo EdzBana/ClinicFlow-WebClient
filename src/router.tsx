@@ -23,6 +23,7 @@ import StockControl from "./pages/StockControl";
 import TransactionHistory from "./pages/Inventory Management/TransactionHistory";
 import AppointmentsMain from "./pages/Appointments/AppointmentsMain";
 import Queueing from "./pages/Appointments/Queueing";
+import Scheduling from "./pages/Appointments/Scheduling";
 import StudentActivities from "./pages/Appointments/StudentActivities";
 import QueueHistoryPage from "./pages/Appointments/QueueHistoryPage";
 import Settings from "./pages/Settings";
@@ -32,6 +33,8 @@ import ViewTool from "./pages/Inventory Management/ViewTool";
 import ToolDetail from "./pages/Inventory Management/ToolDetail";
 import { RequestPasswordReset } from "./auth/RequestPasswordReset";
 import { ChangePassword } from "./auth/ChangePassword";
+import ScheduleAppointmentPage from "./pages/Student Side/ScheduleAppointmentPage";
+import AppointmentSubmitted from "./pages/Student Side/AppointmentSubmitted";
 
 export const router = createBrowserRouter([
   // Auth
@@ -210,6 +213,15 @@ export const router = createBrowserRouter([
     ),
     handle: { title: "Queue History" },
   },
+  {
+    path: "/appointments/scheduling",
+    element: (
+      <PrivateRoute>
+        <Scheduling />
+      </PrivateRoute>
+    ),
+    handle: { title: "Scheduled Appointments" },
+  },
 
   // Settings
   {
@@ -257,6 +269,16 @@ export const router = createBrowserRouter([
     path: "/student-assistance/view-schedule",
     element: <SchedulePage />,
     handle: { title: "View Schedule" },
+  },
+  {
+    path: "/student-assistance/schedule-appointment",
+    element: <ScheduleAppointmentPage />,
+    handle: { title: "Schedule an Appointment" },
+  },
+  {
+    path: "/student-assistance/schedule-appointment/submitted",
+    element: <AppointmentSubmitted />,
+    handle: { title: "Request Submitted" },
   },
 
   // Redirect root

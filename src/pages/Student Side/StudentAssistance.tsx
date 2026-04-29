@@ -17,6 +17,10 @@ const StudentAssistance: React.FC = () => {
     navigate("/student-assistance/view-schedule");
   };
 
+  const handleScheduleAppointment = () => {
+    navigate("/student-assistance/schedule-appointment");
+  }
+
   const handleBack = () => {
     navigate("/login");
   };
@@ -66,6 +70,13 @@ const StudentAssistance: React.FC = () => {
               <div>Request Medical Service</div>
               <div>for Events</div>
             </div>
+          </button>
+          <button
+            onClick={handleScheduleAppointment}
+            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#680000" }}
+          >
+            Schedule an Appointment
           </button>
           <button
             onClick={handleViewSchedule}

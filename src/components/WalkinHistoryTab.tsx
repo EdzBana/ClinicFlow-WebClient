@@ -59,33 +59,52 @@ const WalkinHistoryTab = ({ patientId }: WalkinHistoryTabProps) => {
               key={record.id}
               className="p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <p className="font-medium text-gray-900">
-                    {record.date
-                      ? new Date(record.date).toLocaleDateString()
-                      : "No date"}
-                    {record.time && (
-                      <span className="text-gray-600 ml-2">
-                        at {record.time}
-                      </span>
-                    )}
-                  </p>
-                </div>
+              <div className="flex justify-between items-start mb-3">
+                <p className="font-medium text-gray-900">
+                  {record.date
+                    ? new Date(record.date).toLocaleDateString()
+                    : "No date"}
+                  {record.time && (
+                    <span className="text-gray-600 ml-2">at {record.time}</span>
+                  )}
+                </p>
                 <span className="text-xs text-gray-500">
                   Added {new Date(record.created_at).toLocaleDateString()}
                 </span>
               </div>
-              {record.complaints_and_vital && (
-                <div className="mb-2">
-                  <p className="text-sm font-medium text-gray-700">
-                    Chief Complaints & Vital Signs:
+
+              {/* Complaints as badges */}
+              {Array.isArray(record.complaints_and_vital) &&
+                record.complaints_and_vital.length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-sm font-medium text-gray-700 mb-1">
+                      Chief Complaints & Vital Signs:
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {record.complaints_and_vital.map((complaint) => (
+                        <span
+                          key={complaint}
+                          className="px-2.5 py-0.5 bg-red-100 text-red-800 text-xs font-medium rounded-full"
+                        >
+                          {complaint}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Others free text */}
+              {record.complaints_other?.trim() && (
+                <div className="mb-3">
+                  <p className="text-sm font-medium text-gray-700 mb-1">
+                    Other Complaints:
                   </p>
                   <p className="text-sm text-gray-600">
-                    {record.complaints_and_vital}
+                    {record.complaints_other}
                   </p>
                 </div>
               )}
+
               {record.treatment && (
                 <div className="mb-2">
                   <p className="text-sm font-medium text-gray-700">

@@ -95,7 +95,7 @@ export default function QueueHistoryPage() {
       // Combine both datasets and remove duplicates by id
       const combinedData = [...(queueData || []), ...(historyData || [])];
       const uniqueData = Array.from(
-        new Map(combinedData.map((item) => [item.id, item])).values()
+        new Map(combinedData.map((item) => [item.id, item])).values(),
       );
 
       // Sort by date descending
@@ -127,7 +127,7 @@ export default function QueueHistoryPage() {
   const handleArchiveOld = async () => {
     if (
       !window.confirm(
-        "Archive all completed/cancelled queues from previous days?"
+        "Archive all completed/cancelled queues from previous days?",
       )
     ) {
       return;
@@ -203,7 +203,6 @@ export default function QueueHistoryPage() {
       <div className="min-h-screen bg-gray-200 p-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-5xl font-bold text-gray-800">Queue History</h1>
             <p className="text-xl text-gray-600 mt-2">
               View past queue records and statistics
             </p>
