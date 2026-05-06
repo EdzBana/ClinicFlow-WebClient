@@ -250,7 +250,7 @@ const CommonSymptomsChart = ({ patientId }: { patientId: string }) => {
             />
             <Tooltip formatter={(value: number) => [value, "Occurrences"]} />
             <Bar dataKey="count" name="Occurrences" radius={[0, 4, 4, 0]}>
-              {symptomData.map((entry, index) => (
+              {symptomData.map((_, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={index === 0 ? "#680000" : "#f87171"}
