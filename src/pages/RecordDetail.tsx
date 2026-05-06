@@ -10,8 +10,10 @@ import WalkinHistoryTab from "@/components/WalkinHistoryTab";
 import DentalTreatmentTab from "@/components/DentalTreatmentTab";
 import PhysicalRecordTab from "@/components/PhysicalRecordTab";
 import FileRecordsTab from "@/components/FileRecordsTab";
+import DentalVisitHistoryTab from "@/components/DentalVisitHistoryTab";
 import { useAuth } from "@/hooks/useAuth";
 import { medicalWalkinService } from "@/services/medicalDentalService";
+import { dentalVisitService } from "@/services/dentalVisitService";
 import {
   BarChart,
   Bar,
@@ -156,6 +158,121 @@ const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
   );
 };
 
+const DentalVisitFrequencyChart = ({ patientId }: { patientId: string }) => {
+  const [chartData, setChartData] = useState<
+    { month: string; count: number }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const records = await dentalVisitService.getByPatient(patientId);
+
+        const monthMap = new Map<string, number>();
+
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(1);
+          d.setMonth(d.getMonth() - i);
+
+          const key = d.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+
+          monthMap.set(key, 0);
+        }
+
+        records.forEach((record) => {
+          if (!record.date) return;
+
+          const d = new Date(record.date);
+          const key = d.toLocaleDateString("en-US", {
+            month: "short",
+            year: "numeric",
+          });
+
+          if (monthMap.has(key)) {
+            monthMap.set(key, (monthMap.get(key) || 0) + 1);
+          }
+        });
+
+        setChartData(
+          [...monthMap.entries()].map(([month, count]) => ({
+            month,
+            count,
+          })),
+        );
+      } catch (err) {
+        console.error("Error fetching dental visit frequency:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetch();
+  }, [patientId]);
+
+  const total = chartData.reduce((sum, d) => sum + d.count, 0);
+  const peak = chartData.reduce((max, d) => (d.count > max.count ? d : max), {
+    month: "",
+    count: 0,
+  });
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <div className="flex justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-red-100 p-2 rounded-full">
+            <Activity className="w-5 h-5 text-red-900" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold">Dental Visit Frequency</h3>
+            <p className="text-sm text-gray-500">Last 12 months</p>
+          </div>
+        </div>
+
+        <div className="text-right">
+          <p className="text-xs text-gray-500">Total</p>
+          <p className="text-2xl font-bold text-red-900">{total}</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <p className="text-gray-400 text-sm text-center">Loading...</p>
+      ) : total === 0 ? (
+        <p className="text-gray-400 text-sm text-center italic">
+          No dental visits recorded.
+        </p>
+      ) : (
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" angle={-30} textAnchor="end" height={50} />
+            <YAxis allowDecimals={false} />
+            <Tooltip formatter={(v: number) => [v, "Visits"]} />
+
+            <Bar dataKey="count">
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={index}
+                  fill={
+                    entry.count === peak.count && entry.count > 0
+                      ? "#680000"
+                      : "#f87171"
+                  }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
+
 const CommonSymptomsChart = ({ patientId }: { patientId: string }) => {
   const [symptomData, setSymptomData] = useState<
     { symptom: string; count: number }[]
@@ -255,6 +372,75 @@ const CommonSymptomsChart = ({ patientId }: { patientId: string }) => {
                   key={`cell-${index}`}
                   fill={index === 0 ? "#680000" : "#f87171"}
                 />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
+
+const DentalComplaintsChart = ({ patientId }: { patientId: string }) => {
+  const [data, setData] = useState<{ name: string; count: number }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const records = await dentalVisitService.getByPatient(patientId);
+        const map = new Map<string, number>();
+
+        records.forEach((record) => {
+          if (Array.isArray(record.complaints)) {
+            record.complaints.forEach((c) => {
+              map.set(c, (map.get(c) || 0) + 1);
+            });
+          }
+
+          if (record.complaints_other?.trim()) {
+            map.set("Others", (map.get("Others") || 0) + 1);
+          }
+        });
+
+        setData(
+          [...map.entries()]
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 8),
+        );
+      } catch (err) {
+        console.error("Error fetching dental complaints:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetch();
+  }, [patientId]);
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border p-6 mb-6">
+      <h3 className="text-lg font-semibold mb-2">Common Dental Complaints</h3>
+
+      {loading ? (
+        <p className="text-gray-400 text-sm text-center">Loading...</p>
+      ) : data.length === 0 ? (
+        <p className="text-gray-400 text-sm text-center italic">
+          No complaints recorded.
+        </p>
+      ) : (
+        <ResponsiveContainer width="100%" height={data.length * 40}>
+          <BarChart layout="vertical" data={data}>
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <XAxis type="number" allowDecimals={false} />
+            <YAxis type="category" dataKey="name" width={120} />
+            <Tooltip />
+
+            <Bar dataKey="count">
+              {data.map((_, i) => (
+                <Cell key={i} fill={i === 0 ? "#680000" : "#f87171"} />
               ))}
             </Bar>
           </BarChart>
@@ -385,7 +571,7 @@ const ProfileCard = ({
   </div>
 );
 
-type TabType = "walkin" | "physical" | "dental" | "files";
+type TabType = "walkin" | "physical" | "dental" | "files" | "dentalHistory";
 
 const RecordDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -404,6 +590,11 @@ const RecordDetail = () => {
       id: "walkin" as const,
       label: "Visit History",
       show: userType !== "Dental",
+    },
+    {
+      id: "dentalHistory" as const,
+      label: "Dental Visit History",
+      show: userType === "Dental",
     },
     {
       id: "physical" as const,
@@ -523,6 +714,12 @@ const RecordDetail = () => {
               <CommonSymptomsChart patientId={profile.id} />
             </>
           )}
+          {userType === "Dental" && profile && (
+            <>
+              <DentalVisitFrequencyChart patientId={profile.id} />
+              <DentalComplaintsChart patientId={profile.id} />
+            </>
+          )}
         </>
       ) : (
         <div className="flex items-center justify-center h-64">
@@ -557,12 +754,16 @@ const RecordDetail = () => {
             {activeTab === "walkin" && userType !== "Dental" && (
               <WalkinHistoryTab patientId={profile.id} />
             )}
+            {activeTab === "dentalHistory" && userType === "Dental" && (
+              <DentalVisitHistoryTab patientId={profile.id} />
+            )}
             {activeTab === "physical" && (
               <PhysicalRecordTab patientId={profile.id} />
             )}
             {activeTab === "dental" && userType !== "Medical" && (
               <DentalTreatmentTab patientId={profile.id} />
             )}
+
             {activeTab === "files" && (
               <FileRecordsTab patientId={profile.id} profile={profile} />
             )}

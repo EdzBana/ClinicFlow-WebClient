@@ -38,3 +38,15 @@ export interface CreateDentalTreatmentRecord {
   procedure?: string;
   dentist?: string;
 }
+
+export interface DentalVisitHistory {
+  id: string;
+  patient_id: string;
+  date: string;
+  time: string | null;
+  complaints: string[];
+  complaints_other: string | null;
+  treatment: string | null;
+  notes: string | null;
+  created_at: string;
+}
