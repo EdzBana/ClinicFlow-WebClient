@@ -10,7 +10,7 @@ interface ApiResponse<T> {
 class ApiClient {
   private async request<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     try {
       // Dynamically import supabase client (so no circular deps)
@@ -55,7 +55,7 @@ class ApiClient {
 
   async searchPatientProfiles(
     searchQuery: string,
-    limit: number = 10
+    limit: number = 10,
   ): Promise<PatientProfile[]> {
     const response = await this.request<{ results: PatientProfile[] }>(
       "/patient-profiles",
@@ -66,7 +66,7 @@ class ApiClient {
           searchQuery,
           limit,
         }),
-      }
+      },
     );
 
     if (response.error) {
@@ -89,6 +89,23 @@ class ApiClient {
     });
   }
 
+  async getAllPatientProfiles(): Promise<PatientProfile[]> {
+    const response = await this.request<{ results: PatientProfile[] }>(
+      "/patient-profiles",
+      {
+        method: "POST",
+        body: JSON.stringify({
+          action: "getAll",
+        }),
+      },
+    );
+    if (response.error) {
+      console.error(response.error);
+      return [];
+    }
+    return response.data?.results ?? [];
+  }
+
   /** ---------------------
    * DEPARTMENTS
    * --------------------- */
@@ -102,7 +119,7 @@ class ApiClient {
 
   async uploadPatientRecords(
     uploadData: UploadPatientRecordsRequest,
-    onProgress?: (progress: number) => void
+    onProgress?: (progress: number) => void,
   ): Promise<ApiResponse<{ records: PatientRecord[] }>> {
     if (!uploadData.files.length) return { error: "No files to upload" };
 
@@ -161,7 +178,7 @@ class ApiClient {
 
   async getFileSignedUrl(
     recordId: string,
-    expiresIn: number = 3600
+    expiresIn: number = 3600,
   ): Promise<ApiResponse<FileSignedUrlResponse>> {
     return this.request<FileSignedUrlResponse>("/serve-file", {
       method: "POST",
@@ -190,7 +207,7 @@ class ApiClient {
       {
         method: "POST",
         body: JSON.stringify(itemData),
-      }
+      },
     );
   }
 
@@ -231,7 +248,7 @@ class ApiClient {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-        }
+        },
       );
 
       const result = await response.json();
@@ -285,7 +302,7 @@ class ApiClient {
   async searchItems(
     searchQuery: string,
     limit: number = 10,
-    userType?: string
+    userType?: string,
   ): Promise<InventoryItemList[]> {
     const response = await this.request<{ results: InventoryItemList[] }>(
       "/item-operations",
@@ -297,7 +314,7 @@ class ApiClient {
           limit,
           userType, // Pass userType for filtering
         }),
-      }
+      },
     );
 
     if (response.error) {
@@ -318,7 +335,7 @@ class ApiClient {
           id,
           ...updateData,
         }),
-      }
+      },
     );
   }
 
@@ -341,7 +358,7 @@ class ApiClient {
           action: "restockItem",
           ...restockData,
         }),
-      }
+      },
     );
   }
 }

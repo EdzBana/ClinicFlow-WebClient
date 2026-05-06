@@ -297,12 +297,12 @@ const ToolDetail = () => {
     (selectedTool: Tool) => {
       navigate(`/tools-management/view-tool/${selectedTool.id}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const searchTools = useCallback(
     (query: string) => toolService.searchTools(query, 10),
-    []
+    [],
   );
 
   const handleDeleteConfirm = async () => {
@@ -340,7 +340,7 @@ const ToolDetail = () => {
           className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Tools Management
+          Back
         </button>
       </div>
 

@@ -19,7 +19,7 @@ const WalkinHistoryTab = ({ patientId }: WalkinHistoryTabProps) => {
       const data = await medicalWalkinService.getByPatientId(patientId);
       setRecords(data);
     } catch (err) {
-      console.error("Error fetching walk-in history:", err);
+      console.error("Error fetching Visit history:", err);
     } finally {
       setIsLoading(false);
     }
@@ -32,7 +32,7 @@ const WalkinHistoryTab = ({ patientId }: WalkinHistoryTabProps) => {
   if (isLoading) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-400">Loading walk-in history...</p>
+        <p className="text-gray-400">Loading visit history...</p>
       </div>
     );
   }
@@ -41,7 +41,7 @@ const WalkinHistoryTab = ({ patientId }: WalkinHistoryTabProps) => {
     <div>
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-semibold text-gray-700">
-          Walk-in History ({records.length})
+          Visit History ({records.length})
         </h3>
         <button
           onClick={() => setModalOpen(true)}
@@ -126,7 +126,7 @@ const WalkinHistoryTab = ({ patientId }: WalkinHistoryTabProps) => {
       ) : (
         <div className="text-center py-8">
           <p className="text-gray-400 italic">
-            No walk-in history records found.
+            No Visit history records found.
           </p>
         </div>
       )}

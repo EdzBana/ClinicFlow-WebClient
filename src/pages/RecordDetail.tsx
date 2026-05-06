@@ -1,5 +1,5 @@
 import MainTemplate from "@/components/MainTemplate";
-import { User, Edit } from "lucide-react";
+import { User, Edit, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { apiClient, type PatientProfile } from "@/services/api";
@@ -64,7 +64,7 @@ const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
           [...monthMap.entries()].map(([month, count]) => ({ month, count })),
         );
       } catch (err) {
-        console.error("Error fetching walk-in frequency:", err);
+        console.error("Error fetching Visit frequency:", err);
       } finally {
         setLoading(false);
       }
@@ -87,7 +87,7 @@ const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-800">
-              Walk-in Frequency
+              Visit Frequency
             </h3>
             <p className="text-sm text-gray-500">
               Monthly visits over the last 12 months
@@ -118,7 +118,7 @@ const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
       ) : total === 0 ? (
         <div className="h-48 flex items-center justify-center">
           <p className="text-gray-400 text-sm italic">
-            No walk-in records in the last 12 months.
+            No Visit records in the last 12 months.
           </p>
         </div>
       ) : (
@@ -146,6 +146,114 @@ const WalkinFrequencyChart = ({ patientId }: { patientId: string }) => {
                       ? "#680000"
                       : "#f87171"
                   }
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
+  );
+};
+
+const CommonSymptomsChart = ({ patientId }: { patientId: string }) => {
+  const [symptomData, setSymptomData] = useState<
+    { symptom: string; count: number }[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      try {
+        const records = await medicalWalkinService.getByPatientId(patientId);
+        const symptomMap = new Map<string, number>();
+
+        records.forEach((record) => {
+          if (Array.isArray(record.complaints_and_vital)) {
+            record.complaints_and_vital.forEach((symptom: string) => {
+              symptomMap.set(symptom, (symptomMap.get(symptom) || 0) + 1);
+            });
+          }
+          if (record.complaints_other?.trim()) {
+            symptomMap.set("Others", (symptomMap.get("Others") || 0) + 1);
+          }
+        });
+
+        setSymptomData(
+          [...symptomMap.entries()]
+            .map(([symptom, count]) => ({ symptom, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 8),
+        );
+      } catch (err) {
+        console.error("Error fetching symptom data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetch();
+  }, [patientId]);
+
+  const total = symptomData.reduce((sum, d) => sum + d.count, 0);
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="bg-red-100 rounded-full p-2">
+            <Activity className="w-5 h-5 text-red-900" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Common Symptoms / Illnesses
+            </h3>
+            <p className="text-sm text-gray-500">
+              Based on all Visit records for this patient
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-gray-500">Total Complaints</p>
+          <p className="text-2xl font-bold text-red-900">{total}</p>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="h-48 flex items-center justify-center">
+          <p className="text-gray-400 text-sm">Loading chart...</p>
+        </div>
+      ) : symptomData.length === 0 ? (
+        <div className="h-48 flex items-center justify-center">
+          <p className="text-gray-400 text-sm italic">
+            No symptom records found for this patient.
+          </p>
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={symptomData.length * 40 + 20}>
+          <BarChart
+            data={symptomData}
+            layout="vertical"
+            margin={{ top: 5, right: 40, left: 120, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+            <XAxis
+              type="number"
+              allowDecimals={false}
+              tick={{ fontSize: 11 }}
+            />
+            <YAxis
+              type="category"
+              dataKey="symptom"
+              tick={{ fontSize: 11 }}
+              width={115}
+            />
+            <Tooltip formatter={(value: number) => [value, "Occurrences"]} />
+            <Bar dataKey="count" name="Occurrences" radius={[0, 4, 4, 0]}>
+              {symptomData.map((_, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={index === 0 ? "#680000" : "#f87171"}
                 />
               ))}
             </Bar>
@@ -294,7 +402,7 @@ const RecordDetail = () => {
   const allTabs: { id: TabType; label: string; show: boolean }[] = [
     {
       id: "walkin" as const,
-      label: "Walk In History",
+      label: "Visit History",
       show: userType !== "Dental",
     },
     {
@@ -364,6 +472,14 @@ const RecordDetail = () => {
   return (
     <MainTemplate>
       {/* Search Bar */}
+      <button
+        type="button"
+        onClick={() => navigate("/records")}
+        className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        Back
+      </button>
       <div className="flex justify-center items-start mb-8">
         <RecordSearch<PatientProfile>
           placeholder="Enter Name or ID"
@@ -402,7 +518,10 @@ const RecordDetail = () => {
             onEditProfile={() => setEditModalOpen(true)}
           />
           {userType !== "Dental" && (
-            <WalkinFrequencyChart patientId={profile.id} />
+            <>
+              <WalkinFrequencyChart patientId={profile.id} />
+              <CommonSymptomsChart patientId={profile.id} />
+            </>
           )}
         </>
       ) : (
