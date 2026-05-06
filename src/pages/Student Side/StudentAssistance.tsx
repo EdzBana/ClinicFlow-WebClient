@@ -17,15 +17,16 @@ const StudentAssistance: React.FC = () => {
     navigate("/student-assistance/view-schedule");
   };
 
+  const handleScheduleAppointment = () => {
+    navigate("/student-assistance/schedule-appointment");
+  };
+
   const handleBack = () => {
     navigate("/login");
   };
 
   return (
-    <StudentPageTemplate
-      pageTitle="Health and Dental Services"
-      pageSubtitle="Student Assistance"
-    >
+    <StudentPageTemplate pageTitle="Health and Dental Services">
       {/* Main Content Section */}
       <div className="flex-1 flex flex-col items-center justify-center px-4 py-8">
         {/* Clinic Hours */}
@@ -48,10 +49,10 @@ const StudentAssistance: React.FC = () => {
         </div>
 
         {/* Service Buttons */}
-        <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl mb-12 items-center md:justify-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-lg mb-12">
           <button
             onClick={handleGetNumber}
-            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             Get Number
@@ -59,7 +60,7 @@ const StudentAssistance: React.FC = () => {
 
           <button
             onClick={handleRequestMedicalService}
-            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             <div className="text-center leading-snug">
@@ -68,8 +69,15 @@ const StudentAssistance: React.FC = () => {
             </div>
           </button>
           <button
+            onClick={handleScheduleAppointment}
+            className="w-full h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            style={{ backgroundColor: "#680000" }}
+          >
+            Schedule an Appointment
+          </button>
+          <button
             onClick={handleViewSchedule}
-            className="w-full md:w-64 h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
+            className="w-full h-40 text-white text-lg font-semibold rounded-lg shadow-lg transition-colors duration-200 hover:opacity-90"
             style={{ backgroundColor: "#680000" }}
           >
             View Schedule

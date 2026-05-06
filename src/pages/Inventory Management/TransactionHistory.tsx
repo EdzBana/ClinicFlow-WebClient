@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import MainTemplate from "@/components/MainTemplate";
 import { apiClient } from "@/services/api";
 import { useAuth } from "@/hooks/useAuth";
-import { ArrowLeft } from "lucide-react";
 
 interface TransactionItem {
   id: string;
@@ -48,7 +47,7 @@ const TransactionHistory = () => {
       } else {
         // Filter by user type
         const filtered = (result.data || []).filter(
-          (t: Transaction) => t.user_type === userType
+          (t: Transaction) => t.user_type === userType,
         );
 
         setTransactions(filtered);
@@ -65,17 +64,6 @@ const TransactionHistory = () => {
 
   return (
     <MainTemplate>
-      <div className="flex justify-start mb-6">
-        <button
-          type="button"
-          onClick={() => window.history.back()}
-          className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Inventory Management
-        </button>
-      </div>
-
       <div className="bg-white shadow rounded-lg p-6">
         <h1 className="text-xl font-bold mb-4">Transaction History</h1>
 

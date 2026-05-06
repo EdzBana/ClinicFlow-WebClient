@@ -63,7 +63,7 @@ const calculateDaysDifference = (dateString: string): number => {
 };
 
 const determineItemStatus = (
-  item: InventoryItemList
+  item: InventoryItemList,
 ): InventoryItem["status"] => {
   // Priority 1: Expiration
   if (item.expiration_date) {
@@ -206,7 +206,7 @@ const Inventory = () => {
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedItems = filteredAndSortedItems.slice(
     startIndex,
-    startIndex + ITEMS_PER_PAGE
+    startIndex + ITEMS_PER_PAGE,
   );
 
   const handleSort = (key: keyof InventoryItem) => {
@@ -242,6 +242,10 @@ const Inventory = () => {
     return null;
   };
 
+  const handleAddItem = () => {
+    navigate("/inventory-management/add-item");
+  };
+
   return (
     <MainTemplate>
       <div className="space-y-6">
@@ -256,6 +260,12 @@ const Inventory = () => {
             />
             <Search className="absolute right-3 top-2.5 h-5 w-5 text-gray-400" />
           </div>
+          <button
+            className="mr-12 px-20 py-2 bg-red-900 text-white font-medium rounded-lg hover:bg-red-800 transition-colors duration-200"
+            onClick={handleAddItem}
+          >
+            Add Item
+          </button>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6">
@@ -287,11 +297,11 @@ const Inventory = () => {
                           key={item.id}
                           onClick={() =>
                             navigate(
-                              `/inventory-management/view-item/${item.id}`
+                              `/inventory-management/view-item/${item.id}`,
                             )
                           }
                           className={`border-b cursor-pointer hover:bg-gray-100 transition ${getRowBackgroundColor(
-                            item.status
+                            item.status,
                           )}`}
                         >
                           <td className="px-4 py-3 text-sm">{item.itemName}</td>
@@ -342,7 +352,7 @@ const Inventory = () => {
                     >
                       {page}
                     </button>
-                  )
+                  ),
                 )}
               </div>
             )}

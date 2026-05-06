@@ -145,12 +145,12 @@ const ItemDetail = () => {
     (selectedItem: InventoryItemList) => {
       navigate(`/inventory-management/view-item/${selectedItem.id}`);
     },
-    [navigate]
+    [navigate],
   );
 
   const searchItems = useCallback(
     (query: string) => apiClient.searchItems(query, 10, userType ?? undefined),
-    [userType]
+    [userType],
   );
 
   const handleDeleteConfirm = async () => {
@@ -161,7 +161,7 @@ const ItemDetail = () => {
         alert("Error: " + response.error);
       } else {
         alert("Item deleted successfully");
-        navigate("/inventory-management/view-item");
+        navigate("/inventory");
       }
     } catch (err) {
       console.error("Error deleting item:", err);
@@ -191,11 +191,11 @@ const ItemDetail = () => {
       <div className="flex justify-start mb-6">
         <button
           type="button"
-          onClick={() => navigate("/inventory-management")}
+          onClick={() => navigate("/inventory")}
           className="flex items-center px-4 py-2 text-white bg-[#680000] rounded-lg shadow hover:bg-red-900 transition"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Inventory Management
+          Back
         </button>
       </div>
       {/* Search Bar */}

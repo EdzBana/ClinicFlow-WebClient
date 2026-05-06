@@ -8,6 +8,8 @@ type AuthContextType = {
   user: User | null;
   session: Session | null;
   userType: UserType | null;
+  firstName: string | null;
+  lastName: string | null;
   loading: boolean;
 };
 
@@ -15,6 +17,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   session: null,
   userType: null,
+  firstName: null,
+  lastName: null,
   loading: true,
 });
 
@@ -22,6 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userType, setUserType] = useState<UserType | null>(null);
+  const [firstName, setFirstName] = useState<string | null>(null);
+  const [lastName, setLastName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,15 +35,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const loadUserProfile = async (userId: string) => {
       const { data, error } = await supabase
         .from("user_profiles")
-        .select("type")
+        .select("type, first_name, last_name")
         .eq("id", userId)
         .single();
 
       if (error) {
         console.error("Error loading user profile:", error);
         setUserType(null);
+        setFirstName(null);
+        setLastName(null);
       } else {
         setUserType(data?.type as UserType);
+        setFirstName(data?.first_name ?? null);
+        setLastName(data?.last_name ?? null);
       }
     };
 
@@ -79,6 +89,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(null);
         setUser(null);
         setUserType(null);
+        setFirstName(null);
+        setLastName(null);
       }
     });
 
@@ -88,7 +100,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, session, userType, loading }}>
+    <AuthContext.Provider
+      value={{ user, session, userType, firstName, lastName, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
