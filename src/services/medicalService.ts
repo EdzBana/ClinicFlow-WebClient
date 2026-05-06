@@ -32,7 +32,7 @@ export interface MedicalServiceResponse {
 
 // Submit a new medical service request via Edge Function
 export const submitMedicalServiceRequest = async (
-  requestData: Omit<MedicalServiceRequest, "id" | "created_at" | "updated_at">
+  requestData: Omit<MedicalServiceRequest, "id" | "created_at" | "updated_at">,
 ): Promise<MedicalServiceResponse> => {
   try {
     const config = getSupabaseConfig();
@@ -45,7 +45,7 @@ export const submitMedicalServiceRequest = async (
           Authorization: `Bearer ${config.supabaseKey}`,
         },
         body: JSON.stringify(requestData),
-      }
+      },
     );
 
     const result = await response.json();
@@ -73,7 +73,7 @@ export const getAllMedicalServiceRequests =
 
 // Get a single medical service request by ID
 export const getMedicalServiceRequestById = async (
-  id: string
+  id: string,
 ): Promise<MedicalServiceResponse> => {
   const { data, error } = await supabase
     .from("medical_service_requests")
@@ -87,7 +87,7 @@ export const getMedicalServiceRequestById = async (
 // Update medical service request (approval status and requirements)
 export const updateMedicalServiceRequest = async (
   id: string,
-  updates: Partial<MedicalServiceRequest>
+  updates: Partial<MedicalServiceRequest>,
 ): Promise<MedicalServiceResponse> => {
   const { data, error } = await supabase
     .from("medical_service_requests")
@@ -101,7 +101,7 @@ export const updateMedicalServiceRequest = async (
 
 // Delete a medical service request
 export const deleteMedicalServiceRequest = async (
-  id: string
+  id: string,
 ): Promise<{ error: any }> => {
   const { error } = await supabase
     .from("medical_service_requests")
@@ -113,7 +113,7 @@ export const deleteMedicalServiceRequest = async (
 
 // Get requests by status
 export const getMedicalServiceRequestsByStatus = async (
-  status: "pending" | "approved" | "rejected"
+  status: "pending" | "approved" | "rejected",
 ): Promise<MedicalServiceResponse> => {
   const { data, error } = await supabase
     .from("medical_service_requests")
